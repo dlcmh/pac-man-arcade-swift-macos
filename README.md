@@ -2,24 +2,29 @@
 
 A complete, native macOS Pac-Man tribute written from scratch in Swift, rendered entirely with Metal. There are no sprite sheets, no game engine, and no runtime-asset downloads: the maze, characters, fruit, pixel font, logo, app icon, and chiptune sound effects are all generated procedurally.
 
+Canonical source: <https://github.com/dlcmh/pac-man-arcade-swift-macos>
+
 ![PAC-MAN arcade gameplay](Docs/gameplay.png)
 
 ## Play
 
-The quickest path is the prebuilt app bundle:
+From a fresh clone:
 
 ```bash
+git clone https://github.com/dlcmh/pac-man-arcade-swift-macos.git
+cd pac-man-arcade-swift-macos
+make app
 open dist/PAC-MAN.app
 ```
 
-There is also a distributable disk image at `dist/PAC-MAN-1.0.dmg`. To build both from source:
+To produce a distributable disk image as well:
 
 ```bash
-make app
 make dmg
+# dist/PAC-MAN-1.0.dmg
 ```
 
-For development, with Swift Package Manager:
+Generated bundles under `dist/` are intentionally not committed. For development with Swift Package Manager:
 
 ```bash
 make run
@@ -75,6 +80,11 @@ Sources/PacManArcade/      macOS executable
 Checks/                    Dependency-free simulation checks
 scripts/                   App bundle + icon generation
 Resources/                 Info.plist and generated app icon
+Docs/                      Screenshots and project-origin record
+AGENTS.md                  Operating instructions for coding agents
+CONTRIBUTING.md            Contribution workflow and quality bar
+GOVERNANCE.md              Decision-making, release, and IP policy
+SECURITY.md                Vulnerability reporting and privacy posture
 ```
 
 The simulation is deliberately independent of AppKit and Metal so it can be tested headlessly.
@@ -85,8 +95,18 @@ The simulation is deliberately independent of AppKit and Metal so it can be test
 make checks
 ```
 
-The checks cover maze dimensions and pellet totals, reachability of every pellet, tunnel wrapping, the eyes' path home, state transitions, dot scoring, wall stops, buffered turns, pause behavior, ghost-house release, a 60-second movement soak test, an autopilot run that reaches a power pellet, and ghost collision/death handling.
+The checks cover maze dimensions and pellet totals, reachability of every pellet, tunnel wrapping, the eyes' path home, state transitions, dot scoring, wall stops, buffered turns, pause behavior, ghost-house release, a 60-second movement soak test, an autopilot run that reaches a power pellet, ghost collision/death handling, and game over. The current baseline passes **21,646 checks**.
+
+## Project and governance
+
+- [Project origin](Docs/PROJECT_ORIGIN.md) — the original commission, scope decisions, and delivery record
+- [Contributing](CONTRIBUTING.md)
+- [Governance](GOVERNANCE.md)
+- [Security policy](SECURITY.md)
+- [Agent instructions](AGENTS.md)
+
+No open-source license has been selected for this repository; see the governance policy before reusing or redistributing any part of it.
 
 ## Notes
 
-PAC-MAN is a trademark of Bandai Namco Entertainment Inc. This is a fan-made, non-commercial technical tribute and is not affiliated with or endorsed by Bandai Namco. All artwork, audio, and code in this repository are original procedural work.
+PAC-MAN is a trademark of Bandai Namco Entertainment Inc. This is a fan-made, non-commercial technical tribute and is not affiliated with or endorsed by Bandai Namco. All artwork, audio, and code in this repository are original procedural work. The level-256 kill screen from the arcade original is acknowledged as history but is not emulated.
