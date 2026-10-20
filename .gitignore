@@ -1,6 +1,39 @@
-.build/
-dist/
+# macOS
 .DS_Store
-Resources/AppIcon.iconset/
-*.xcuserstate
+
+# Swift Package Manager / Xcode build products
+.build/
 .swiftpm/
+*.xcuserstate
+
+# Generated release artifacts
+dist/
+
+# Generated icon intermediates
+Resources/AppIcon.iconset/
+
+# Python tooling and local environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.so
+*.egg
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyre/
+.pyright/
+.tox/
+.nox/
+.hypothesis/
+.ipynb_checkpoints/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+env/
+__pypackages__/
+.direnv/
