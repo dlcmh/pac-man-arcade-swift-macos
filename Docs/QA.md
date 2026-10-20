@@ -180,3 +180,58 @@ greedy target rule described in question 1, evaluating only the immediate exits
 at each tile center. That is the authentic arcade behavior: ghosts can be
 baited into taking a locally shorter turn that leads away from Pac-Man. BFS
 would make them perfect pursuers and lose that character.
+
+## 3. Is Metal used for all computations?
+
+**No.** Metal is used only to draw the frame. Every gameplay computation —
+movement, ghost decisions, collisions, scoring, timers, mode changes — runs in
+plain Swift on the CPU. Audio is also CPU-generated, and windowing, input, and
+persistence use AppKit and `UserDefaults` rather than Metal.
+
+| Layer | Technology | What it does |
+| --- | --- | --- |
+| Simulation | Swift + Foundation, CPU | Game rules and state in `PacManCore` |
+| Frame scheduling | AppKit / QuartzCore, CPU | `MTKView` callback and fixed-step accumulator |
+| Geometry | Swift, CPU | Builds the frame's triangles in `Canvas` |
+| Rasterisation | **Metal, GPU** | Transforms vertices, rasterises, blends, resolves MSAA |
+| Audio | AVFoundation, CPU | Synthesises PCM buffers, then plays them |
+| Input/persistence | AppKit + `UserDefaults` | Keyboard, window, high score, mute |
+
+### Where the split happens
+
+- [`Game.swift:280–310`](../Sources/PacManCore/Game.swift#L280-L310) — the whole
+  simulation update. `PacManCore` imports only `Foundation`; it has no Metal,
+  AppKit, or audio imports.
+- [`GameView.swift:90–111`](../Sources/PacManArcade/GameView.swift#L90-L111) —
+  the `MTKView` draw callback runs a 60 Hz fixed-step loop on the CPU. Each step
+  calls `game.update(dt:)` and processes events **before** asking the renderer
+  to draw. The renderer receives an already-decided `PacManGame` and only reads
+  it.
+- [`Canvas.swift:36–73`](../Sources/PacManArcade/Canvas.swift#L36-L73) — the
+  immediate-mode canvas expands every wall, pellet, character, glyph, and
+  scanline into triangles. This work is entirely on the CPU.
+- [`Renderer.swift:78–148`](../Sources/PacManArcade/Renderer.swift#L78-L148) —
+  the CPU-side scene composition, buffer copy, and a single
+  `drawPrimitives(type: .triangle, ...)` submission.
+- [`MetalShaders.swift:24–40`](../Sources/PacManArcade/MetalShaders.swift#L24-L40)
+  — the entire GPU program: a vertex shader that scales the 2D position and
+  converts it to clip space, and a fragment shader that returns the vertex
+  colour. There is no lighting, simulation, or compute kernel here.
+- [`SoundEngine.swift:190–207`](../Sources/PacManArcade/SoundEngine.swift#L190-L207)
+  — sound effects are generated sample-by-sample into `AVAudioPCMBuffer`s by
+  ordinary CPU code, then played through `AVAudioEngine`.
+
+There are no Metal compute pipelines or compute command encoders in the
+project; the only pipeline created is the render pipeline. The GPU does do
+per-vertex and per-pixel work — transforming coordinates, rasterising triangles,
+blending, and resolving 4× MSAA — but it never decides what the game does.
+
+### Why it is split this way
+
+The separation is an explicit architectural rule:
+[`AGENTS.md:66–70`](AGENTS.md#L66-L70). Keeping `PacManCore` headless is what
+lets the checks executable import it with nothing but Foundation
+([`Checks/main.swift:1–2`](../Checks/main.swift#L1-L2)) and run thousands of
+deterministic assertions on a machine without needing a window or a drawable.
+It also keeps the simulation reproducible: no frame timing, GPU scheduling, or
+rendering state can change a ghost's decision.
