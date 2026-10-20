@@ -108,7 +108,7 @@ If you have never written a GPU API, the [Metal crash course](Docs/METAL_CRASH_C
 
 ## Refactoring decisions
 
-[`refactoring/`](refactoring/) holds dated records of refactors that were proposed and evaluated, each with the evidence behind the decision so it does not have to be re-derived. The first entry weighs [deferring `check` failure messages with `@autoclosure`](refactoring/261020-check-failure-message-autoclosure.md) — including whether the optimization pays for itself when the messages are string literals.
+[`refactoring/`](refactoring/README.md) holds dated records of refactors that were proposed and evaluated, newest first, each with the evidence behind the decision so it does not have to be re-derived. The first entry weighs [deferring `check` failure messages with `@autoclosure`](refactoring/check-failure-message-autoclosure.md) — including whether the optimization pays for itself when the messages are string literals.
 
 ## Project and governance
 

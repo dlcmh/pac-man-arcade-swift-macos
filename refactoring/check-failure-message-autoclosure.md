@@ -1,9 +1,10 @@
-# 2026-10-20 — Deferring `check` failure messages with `@autoclosure`
+# Deferring `check` failure messages with `@autoclosure`
 
 Evaluation of a proposed signature change to the simulation-check helper.
 
 - **Project:** PAC-MAN — Metal Arcade
 - **Recorded:** 2026-10-20 (+08:00, Asia/Kuala_Lumpur)
+- **Last updated:** 2026-10-20
 - **Subject:** [`Checks/main.swift:6`](../Checks/main.swift#L6)
 - **Proposal:** change `_ message: String` to `_ message: @autoclosure () -> String`
 - **Outcome:** **declined.** No code change. The technique is sound; the benefit
