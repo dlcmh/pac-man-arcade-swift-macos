@@ -23,7 +23,7 @@ file.
 To confirm the date to record, use the commit that last touched the file:
 
 ```bash
-git log -1 --format=%cs -- Docs/refactoring/<file>.md
+git log -1 --format=%cs -- Docs/Refactoring/<file>.md
 ```
 
 The in-file date is authoritative because it survives cloning, where file
