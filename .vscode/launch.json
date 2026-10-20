@@ -1,0 +1,44 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:pac-man-arcade-swift-macos}",
+            "name": "Debug PacManArcade",
+            "target": "PacManArcade",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug PacManArcade"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:pac-man-arcade-swift-macos}",
+            "name": "Release PacManArcade",
+            "target": "PacManArcade",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release PacManArcade"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:pac-man-arcade-swift-macos}",
+            "name": "Debug PacManChecks",
+            "target": "PacManChecks",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug PacManChecks"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:pac-man-arcade-swift-macos}",
+            "name": "Release PacManChecks",
+            "target": "PacManChecks",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release PacManChecks"
+        }
+    ]
+}
