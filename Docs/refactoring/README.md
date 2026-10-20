@@ -1,4 +1,4 @@
-# Refactoring decisions
+# Refactoring
 
 Dated records of refactors that were proposed and evaluated. Each entry captures
 the evidence behind the decision — measurements, call-site counts, and the
@@ -23,7 +23,7 @@ file.
 To confirm the date to record, use the commit that last touched the file:
 
 ```bash
-git log -1 --format=%cs -- refactoring/<file>.md
+git log -1 --format=%cs -- Docs/refactoring/<file>.md
 ```
 
 The in-file date is authoritative because it survives cloning, where file

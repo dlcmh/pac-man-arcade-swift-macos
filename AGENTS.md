@@ -28,7 +28,7 @@ supersedes them. Update this file when project policy changes.
 | `Sources/PacManArcade/` | macOS app, Metal renderer, input, procedural audio, and persistence. |
 | `Checks/` | Dependency-free simulation checks executable. |
 | `Resources/` | App metadata and generated icon files. |
-| `Docs/` | Screenshots, project origin, code Q&A, and the Metal crash course. |
+| `Docs/` | Screenshots, project origin, code Q&A, Metal crash course, and refactoring decision records under `Docs/refactoring/`. |
 | `scripts/` | Deterministic app-bundle packaging and icon generation. |
 | `dist/` | Generated, git-ignored app and DMG artifacts. Never commit it. |
 

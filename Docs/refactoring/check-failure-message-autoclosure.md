@@ -5,7 +5,7 @@ Evaluation of a proposed signature change to the simulation-check helper.
 - **Project:** PAC-MAN — Metal Arcade
 - **Recorded:** 2026-10-20 (+08:00, Asia/Kuala_Lumpur)
 - **Last updated:** 2026-10-20
-- **Subject:** [`Checks/main.swift:6`](../Checks/main.swift#L6)
+- **Subject:** [`Checks/main.swift:6`](../../Checks/main.swift#L6)
 - **Proposal:** change `_ message: String` to `_ message: @autoclosure () -> String`
 - **Outcome:** **declined.** No code change. The technique is sound; the benefit
   is zero in this codebase, and the stated performance rationale does not hold.
@@ -119,7 +119,7 @@ Ranked by value, if the helper is worth touching at all:
 1. **Leave the signature alone.** It is provably free at 43 literal call sites.
 2. **If changed, justify it as future-proofing** for interpolated messages — not
    as a performance fix — and land it as its own `test:` commit, per the
-   smallest-coherent-change rule in [`AGENTS.md`](../AGENTS.md).
+   smallest-coherent-change rule in [`AGENTS.md`](../../AGENTS.md).
 3. **Capture failure context instead.** The real ergonomic gap is that
    `check` prints only a hand-written string and `exit(1)` on the first failure:
    no source location, no operand values. That is the part of `#expect` that
