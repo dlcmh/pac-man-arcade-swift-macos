@@ -81,6 +81,7 @@ Checks/                    Dependency-free simulation checks
 scripts/                   App bundle + icon generation
 Resources/                 Info.plist and generated app icon
 Docs/                      Screenshots, project-origin record, code Q&A, Metal crash course
+refactoring/               Dated records of evaluated refactor proposals
 AGENTS.md                  Operating instructions for coding agents
 CONTRIBUTING.md            Contribution workflow and quality bar
 GOVERNANCE.md              Decision-making, release, and IP policy
@@ -104,6 +105,10 @@ If you have never written a GPU API, the [Metal crash course](Docs/METAL_CRASH_C
 ## Questions and answers
 
 [Code Q&A](Docs/QA.md) collects source-grounded answers to questions about how the game works, starting with how the ghosts decide where to move.
+
+## Refactoring decisions
+
+[`refactoring/`](refactoring/) holds dated records of refactors that were proposed and evaluated, each with the evidence behind the decision so it does not have to be re-derived. The first entry weighs [deferring `check` failure messages with `@autoclosure`](refactoring/261020-check-failure-message-autoclosure.md) — including whether the optimization pays for itself when the messages are string literals.
 
 ## Project and governance
 
