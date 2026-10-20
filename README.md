@@ -113,7 +113,7 @@ If you have never written a GPU API, the [Metal crash course](Docs/METAL_CRASH_C
 
 ## Questions and answers
 
-[`Docs/QnA/`](Docs/QnA/README.md) collects source-grounded answers to individual questions about how the game works. The entries cover ghost targeting, BFS, the CPU/Metal split, attract mode, and the headless `PacManCore` architecture, and each one links to the files and symbols it describes.
+[`Docs/QnA/`](Docs/QnA/README.md) collects source-grounded answers to individual questions about how the game works. The entries cover ghost targeting, BFS, the CPU/Metal split, attract mode, the headless `PacManCore` architecture, and the procedural 5×7 font, and each one links to the files and symbols it describes.
 
 ## Refactoring
 

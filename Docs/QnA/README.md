@@ -10,6 +10,7 @@ file. When dates are equal, the most recently added question comes first.
 
 | Question | Last updated | Covers |
 | --- | --- | --- |
+| [How does the 5×7 procedural font work?](pixel-font.md) | 2026-10-20 | Glyph bitmaps, quad-based text, scaling, glow, and the asset-free font pipeline |
 | [How does PacManCore work, and what software-engineering principles does it demonstrate?](pacmancore-architecture.md) | 2026-10-20 | The headless simulation, its adapter boundary, determinism, and the principles behind the split |
 | [What is attract mode?](attract-mode.md) | 2026-10-20 | The idle title screen, its frozen game state, start input, and animated overlay |
 | [Is Metal used for all computations?](metal-computations.md) | 2026-10-20 | The CPU-simulation / GPU-rendering split and why it exists |
