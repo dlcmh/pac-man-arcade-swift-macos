@@ -42,7 +42,9 @@ while head < queue.count {
     head += 1
     for direction in Direction.allCases {
         let next = maze.neighbor(of: current, in: direction)
-        guard (0..<Maze.rows).contains(next.y), maze.isWalkable(next, allowDoor: false) else { continue }
+        guard (0..<Maze.rows).contains(next.y), maze.isWalkable(next, allowDoor: false) else {
+            continue
+        }
         if reachable.insert(next).inserted {
             queue.append(next)
         }
@@ -100,8 +102,11 @@ check(!game.isPaused, "resume clears pause flag")
 let releaseGame = PacManGame()
 startPlaying(releaseGame)
 step(releaseGame, seconds: 6.0)
-check(releaseGame.ghosts.contains { $0.kind == .pinky && $0.state != .house }, "Pinky leaves the house")
-check(releaseGame.ghosts.contains { $0.kind == .inky && $0.state != .house }, "Inky leaves the house")
+check(
+    releaseGame.ghosts.contains { $0.kind == .pinky && $0.state != .house },
+    "Pinky leaves the house")
+check(
+    releaseGame.ghosts.contains { $0.kind == .inky && $0.state != .house }, "Inky leaves the house")
 
 // Soak test: random turns for one simulated minute. This catches degenerate
 // movement loops, non-finite positions, and state-machine crashes.
@@ -116,12 +121,19 @@ while elapsed < 60.0 {
     }
     soak.update(dt: 1.0 / 60.0)
     elapsed += 1.0 / 60.0
-    check(soak.pac.position.x.isFinite && soak.pac.position.y.isFinite, "Pac-Man position remains finite")
-    check(soak.pac.position.x > -1.5 && soak.pac.position.x < 29.5, "Pac-Man stays within the tunnel bounds")
-    check(soak.pac.position.y >= 0 && soak.pac.position.y < 31, "Pac-Man stays within the maze rows")
+    check(
+        soak.pac.position.x.isFinite && soak.pac.position.y.isFinite,
+        "Pac-Man position remains finite")
+    check(
+        soak.pac.position.x > -1.5 && soak.pac.position.x < 29.5,
+        "Pac-Man stays within the tunnel bounds")
+    check(
+        soak.pac.position.y >= 0 && soak.pac.position.y < 31, "Pac-Man stays within the maze rows")
     let pacTile = soak.maze.gridPoint(for: soak.pac.position)
     check(soak.maze.isWalkable(pacTile, allowDoor: false), "Pac-Man remains on a walkable tile")
-    check(soak.ghosts.allSatisfy { $0.position.x.isFinite && $0.position.y.isFinite }, "ghost positions remain finite")
+    check(
+        soak.ghosts.allSatisfy { $0.position.x.isFinite && $0.position.y.isFinite },
+        "ghost positions remain finite")
     check(soak.remainingPellets >= 0, "pellet count never becomes negative")
 }
 check(soak.phase != .attract, "soak simulation left attract mode")
@@ -142,7 +154,9 @@ func firstDirection(from start: GridPoint, to target: (GridPoint) -> Bool) -> Di
         }
         for direction in Direction.decisionOrder {
             let next = maze.neighbor(of: point, in: direction)
-            guard (0..<Maze.rows).contains(next.y), maze.isWalkable(next, allowDoor: false) else { continue }
+            guard (0..<Maze.rows).contains(next.y), maze.isWalkable(next, allowDoor: false) else {
+                continue
+            }
             if visited.insert(next).inserted {
                 queue.append((next, first ?? direction))
             }
@@ -161,8 +175,10 @@ for _ in 0..<4 where !reachedPowerPellet {
             break
         }
         let currentTile = run.maze.gridPoint(for: run.pac.position).wrapped(columns: Maze.columns)
-        let canContinue = run.maze.isWalkable(run.maze.neighbor(of: currentTile, in: run.pac.direction), allowDoor: false)
-        let planningTile = canContinue ? run.maze.neighbor(of: currentTile, in: run.pac.direction) : currentTile
+        let canContinue = run.maze.isWalkable(
+            run.maze.neighbor(of: currentTile, in: run.pac.direction), allowDoor: false)
+        let planningTile =
+            canContinue ? run.maze.neighbor(of: currentTile, in: run.pac.direction) : currentTile
         let targetDirection = firstDirection(from: planningTile) { point in
             point.y > 20 && run.pellets.contains(point) && run.maze.tile(at: point) == .powerPellet
         }

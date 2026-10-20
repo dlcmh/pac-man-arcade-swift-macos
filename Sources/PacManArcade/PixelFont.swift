@@ -57,7 +57,7 @@ final class PixelFont {
         "-": [0b00000, 0b00000, 0b00000, 0b11111, 0b00000, 0b00000, 0b00000],
         "/": [0b00001, 0b00010, 0b00010, 0b00100, 0b01000, 0b01000, 0b10000],
         "'": [0b00100, 0b00100, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000],
-        "+": [0b00000, 0b00100, 0b00100, 0b11111, 0b00100, 0b00100, 0b00000]
+        "+": [0b00000, 0b00100, 0b00100, 0b11111, 0b00100, 0b00100, 0b00000],
     ]
 
     private let canvas: Canvas
@@ -121,8 +121,12 @@ final class PixelFont {
         alignment: TextAlignment = .left,
         glowColor: Color
     ) {
-        draw(text, x: x + pixelSize * 0.28, y: y + pixelSize * 0.28, pixelSize: pixelSize, color: glowColor, alignment: alignment)
-        draw(text, x: x - pixelSize * 0.16, y: y - pixelSize * 0.16, pixelSize: pixelSize, color: glowColor, alignment: alignment)
+        draw(
+            text, x: x + pixelSize * 0.28, y: y + pixelSize * 0.28, pixelSize: pixelSize,
+            color: glowColor, alignment: alignment)
+        draw(
+            text, x: x - pixelSize * 0.16, y: y - pixelSize * 0.16, pixelSize: pixelSize,
+            color: glowColor, alignment: alignment)
         draw(text, x: x, y: y, pixelSize: pixelSize, color: color, alignment: alignment)
     }
 }

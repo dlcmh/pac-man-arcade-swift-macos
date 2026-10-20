@@ -159,7 +159,8 @@ final class GameView: MTKView, MTKViewDelegate {
                 } else if characters == "m" {
                     toggleMute()
                 } else if game.phase == .attract || game.phase == .gameOver,
-                          characters == "\r" || characters == " " {
+                    characters == "\r" || characters == " "
+                {
                     game.requestStart()
                 }
             }

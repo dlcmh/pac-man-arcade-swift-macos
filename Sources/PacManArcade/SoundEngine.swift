@@ -137,9 +137,13 @@ final class SoundEngine {
         buffers["fruit"] = makeBuffer(duration: 0.32) { t in
             let progress = min(1, t / 0.32)
             let frequency: Double
-            if progress < 0.33 { frequency = 659.25 }
-            else if progress < 0.66 { frequency = 783.99 }
-            else { frequency = 1046.5 }
+            if progress < 0.33 {
+                frequency = 659.25
+            } else if progress < 0.66 {
+                frequency = 783.99
+            } else {
+                frequency = 1046.5
+            }
             return self.triangle(time: t, frequency: frequency) * Float(0.24 * (1 - progress * 0.7))
         }
 
@@ -150,14 +154,16 @@ final class SoundEngine {
             let notes = [783.99, 987.77, 1174.66, 1567.98, 1318.51, 1567.98]
             let noteProgress = (t - Double(noteIndex) * noteLength) / noteLength
             let envelope = max(0, 1 - noteProgress)
-            return self.square(time: t, frequency: notes[noteIndex]) * Float(0.18 * envelope * (1 - progress * 0.4))
+            return self.square(time: t, frequency: notes[noteIndex])
+                * Float(0.18 * envelope * (1 - progress * 0.4))
         }
 
         buffers["death"] = makeBuffer(duration: 1.2) { t in
             let progress = min(1, t / 1.2)
             let frequency = 700.0 * pow(0.11, progress) + sin(t * 2 * .pi * 9) * 9
             let wobble = sin(t * 2 * .pi * 23) * 0.08
-            return self.square(time: t, frequency: frequency + wobble) * Float(0.22 * (1 - progress))
+            return self.square(time: t, frequency: frequency + wobble)
+                * Float(0.22 * (1 - progress))
         }
 
         buffers["start"] = makeBuffer(duration: 1.05) { t in
@@ -167,7 +173,8 @@ final class SoundEngine {
             let progress = min(1, t / 1.05)
             let noteProgress = (t - Double(noteIndex) * noteLength) / noteLength
             let envelope = max(0, 1 - noteProgress * 0.85)
-            return self.square(time: t, frequency: notes[noteIndex]) * Float(0.16 * envelope * (1 - progress * 0.4))
+            return self.square(time: t, frequency: notes[noteIndex])
+                * Float(0.16 * envelope * (1 - progress * 0.4))
         }
 
         buffers["levelComplete"] = makeBuffer(duration: 0.8) { t in
@@ -177,7 +184,8 @@ final class SoundEngine {
             let progress = min(1, t / 0.8)
             let noteProgress = (t - Double(noteIndex) * noteLength) / noteLength
             let envelope = max(0, 1 - noteProgress)
-            return self.triangle(time: t, frequency: notes[noteIndex]) * Float(0.22 * envelope * (1 - progress * 0.3))
+            return self.triangle(time: t, frequency: notes[noteIndex])
+                * Float(0.22 * envelope * (1 - progress * 0.3))
         }
 
         buffers["gameOver"] = makeBuffer(duration: 0.9) { t in
@@ -191,7 +199,8 @@ final class SoundEngine {
         let sampleRate = format.sampleRate
         let frameCount = AVAudioFrameCount(duration * sampleRate)
         guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount),
-              let channelData = buffer.floatChannelData else {
+            let channelData = buffer.floatChannelData
+        else {
             return nil
         }
         buffer.frameLength = frameCount

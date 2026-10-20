@@ -87,25 +87,31 @@ final class Canvas {
         var previous = CGPoint(x: center.x + radius, y: center.y)
         for index in 1...count {
             let angle = CGFloat(index) / CGFloat(count) * .pi * 2
-            let current = CGPoint(x: center.x + cos(angle) * radius, y: center.y + sin(angle) * radius)
+            let current = CGPoint(
+                x: center.x + cos(angle) * radius, y: center.y + sin(angle) * radius)
             addTriangle(center, previous, current, color: color)
             previous = current
         }
     }
 
-    func addEllipse(center: CGPoint, radiusX: CGFloat, radiusY: CGFloat, color: Color, segments: Int = 28) {
+    func addEllipse(
+        center: CGPoint, radiusX: CGFloat, radiusY: CGFloat, color: Color, segments: Int = 28
+    ) {
         guard radiusX > 0, radiusY > 0 else { return }
         let count = max(segments, 8)
         var previous = CGPoint(x: center.x + radiusX, y: center.y)
         for index in 1...count {
             let angle = CGFloat(index) / CGFloat(count) * .pi * 2
-            let current = CGPoint(x: center.x + cos(angle) * radiusX, y: center.y + sin(angle) * radiusY)
+            let current = CGPoint(
+                x: center.x + cos(angle) * radiusX, y: center.y + sin(angle) * radiusY)
             addTriangle(center, previous, current, color: color)
             previous = current
         }
     }
 
-    func addRing(center: CGPoint, radius: CGFloat, thickness: CGFloat, color: Color, segments: Int = 40) {
+    func addRing(
+        center: CGPoint, radius: CGFloat, thickness: CGFloat, color: Color, segments: Int = 40
+    ) {
         guard radius > 0, thickness > 0 else { return }
         let count = max(segments, 12)
         let inner = max(0, radius - thickness)
@@ -123,7 +129,9 @@ final class Canvas {
         }
     }
 
-    func addLine(from start: CGPoint, to end: CGPoint, thickness: CGFloat, color: Color, rounded: Bool = true) {
+    func addLine(
+        from start: CGPoint, to end: CGPoint, thickness: CGFloat, color: Color, rounded: Bool = true
+    ) {
         let dx = end.x - start.x
         let dy = end.y - start.y
         let length = hypot(dx, dy)
@@ -151,16 +159,21 @@ final class Canvas {
     }
 
     /// Filled pie/wedge segment, used for Pac-Man's body.
-    func addPie(center: CGPoint, radius: CGFloat, startAngle: CGFloat, endAngle: CGFloat, color: Color, segments: Int = 50) {
+    func addPie(
+        center: CGPoint, radius: CGFloat, startAngle: CGFloat, endAngle: CGFloat, color: Color,
+        segments: Int = 50
+    ) {
         guard radius > 0, endAngle > startAngle else { return }
         let steps = max(segments, 6)
-        var previous = CGPoint(x: center.x + cos(startAngle) * radius,
-                               y: center.y + sin(startAngle) * radius)
+        var previous = CGPoint(
+            x: center.x + cos(startAngle) * radius,
+            y: center.y + sin(startAngle) * radius)
         for index in 1...steps {
             let t = CGFloat(index) / CGFloat(steps)
             let angle = startAngle + (endAngle - startAngle) * t
-            let current = CGPoint(x: center.x + cos(angle) * radius,
-                                  y: center.y + sin(angle) * radius)
+            let current = CGPoint(
+                x: center.x + cos(angle) * radius,
+                y: center.y + sin(angle) * radius)
             addTriangle(center, previous, current, color: color)
             previous = current
         }
@@ -169,8 +182,9 @@ final class Canvas {
     func addPolygon(points: [CGPoint], color: Color) {
         guard points.count >= 3 else { return }
         let center = points.reduce(CGPoint.zero) { partial, point in
-            CGPoint(x: partial.x + point.x / CGFloat(points.count),
-                    y: partial.y + point.y / CGFloat(points.count))
+            CGPoint(
+                x: partial.x + point.x / CGFloat(points.count),
+                y: partial.y + point.y / CGFloat(points.count))
         }
         for index in 0..<points.count {
             let next = (index + 1) % points.count
@@ -183,7 +197,8 @@ final class Canvas {
             let factor = CGFloat(layer + 1) / CGFloat(layers)
             var faded = color
             faded.w *= Float(1.0 - factor * 0.55)
-            addCircle(center: center, radius: radius * (1 + factor * 0.55), color: faded, segments: 24)
+            addCircle(
+                center: center, radius: radius * (1 + factor * 0.55), color: faded, segments: 24)
         }
     }
 }

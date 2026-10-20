@@ -37,7 +37,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.collectionBehavior.insert(.fullScreenPrimary)
         window.contentMinSize = NSSize(width: 560, height: 683)
-        window.contentAspectRatio = NSSize(width: Renderer.designWidth, height: Renderer.designHeight)
+        window.contentAspectRatio = NSSize(
+            width: Renderer.designWidth, height: Renderer.designHeight)
         window.setContentSize(initialSize)
         window.center()
         window.delegate = self
@@ -67,40 +68,48 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         mainMenu.addItem(appMenuItem)
         let appMenu = NSMenu(title: "PAC-MAN")
         appMenuItem.submenu = appMenu
-        appMenu.addItem(withTitle: "About PAC-MAN",
-                        action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
-                        keyEquivalent: "")
+        appMenu.addItem(
+            withTitle: "About PAC-MAN",
+            action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
+            keyEquivalent: "")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Hide PAC-MAN",
-                        action: #selector(NSApplication.hide(_:)),
-                        keyEquivalent: "h")
-        let hideOthers = appMenu.addItem(withTitle: "Hide Others",
-                                         action: #selector(NSApplication.hideOtherApplications(_:)),
-                                         keyEquivalent: "h")
+        appMenu.addItem(
+            withTitle: "Hide PAC-MAN",
+            action: #selector(NSApplication.hide(_:)),
+            keyEquivalent: "h")
+        let hideOthers = appMenu.addItem(
+            withTitle: "Hide Others",
+            action: #selector(NSApplication.hideOtherApplications(_:)),
+            keyEquivalent: "h")
         hideOthers.keyEquivalentModifierMask = [.command, .option]
-        appMenu.addItem(withTitle: "Show All",
-                        action: #selector(NSApplication.unhideAllApplications(_:)),
-                        keyEquivalent: "")
+        appMenu.addItem(
+            withTitle: "Show All",
+            action: #selector(NSApplication.unhideAllApplications(_:)),
+            keyEquivalent: "")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Quit PAC-MAN",
-                        action: #selector(NSApplication.terminate(_:)),
-                        keyEquivalent: "q")
+        appMenu.addItem(
+            withTitle: "Quit PAC-MAN",
+            action: #selector(NSApplication.terminate(_:)),
+            keyEquivalent: "q")
 
         let gameMenuItem = NSMenuItem()
         mainMenu.addItem(gameMenuItem)
         let gameMenu = NSMenu(title: "Game")
         gameMenuItem.submenu = gameMenu
 
-        let newGame = NSMenuItem(title: "New Game", action: #selector(newGame(_:)), keyEquivalent: "n")
+        let newGame = NSMenuItem(
+            title: "New Game", action: #selector(newGame(_:)), keyEquivalent: "n")
         newGame.target = self
         gameMenu.addItem(newGame)
 
-        let pause = NSMenuItem(title: "Pause / Resume", action: #selector(togglePause(_:)), keyEquivalent: "p")
+        let pause = NSMenuItem(
+            title: "Pause / Resume", action: #selector(togglePause(_:)), keyEquivalent: "p")
         pause.target = self
         pause.keyEquivalentModifierMask = [.command]
         gameMenu.addItem(pause)
 
-        let mute = NSMenuItem(title: "Toggle Sound", action: #selector(toggleSound(_:)), keyEquivalent: "m")
+        let mute = NSMenuItem(
+            title: "Toggle Sound", action: #selector(toggleSound(_:)), keyEquivalent: "m")
         mute.target = self
         mute.keyEquivalentModifierMask = [.command]
         gameMenu.addItem(mute)
@@ -109,9 +118,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         mainMenu.addItem(viewMenuItem)
         let viewMenu = NSMenu(title: "View")
         viewMenuItem.submenu = viewMenu
-        let fullScreen = NSMenuItem(title: "Enter Full Screen",
-                                    action: #selector(NSWindow.toggleFullScreen(_:)),
-                                    keyEquivalent: "f")
+        let fullScreen = NSMenuItem(
+            title: "Enter Full Screen",
+            action: #selector(NSWindow.toggleFullScreen(_:)),
+            keyEquivalent: "f")
         fullScreen.keyEquivalentModifierMask = [.command, .control]
         viewMenu.addItem(fullScreen)
 

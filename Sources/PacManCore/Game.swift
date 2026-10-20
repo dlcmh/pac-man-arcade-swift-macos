@@ -170,7 +170,7 @@ public final class PacManGame {
         (.scatter, 5.0),
         (.chase, 20.0),
         (.scatter, 5.0),
-        (.chase, .infinity)
+        (.chase, .infinity),
     ]
 
     public init(highScore: Int = 0) {
@@ -497,7 +497,9 @@ public final class PacManGame {
 
         if abs(ghost.position.x - doorX) > 0.0001 {
             let direction: Double = ghost.position.x < doorX ? 1 : -1
-            ghost.position.x = min(max(ghost.position.x + direction * speed * deltaTime, min(doorX, ghost.position.x)), max(doorX, ghost.position.x))
+            ghost.position.x = min(
+                max(ghost.position.x + direction * speed * deltaTime, min(doorX, ghost.position.x)),
+                max(doorX, ghost.position.x))
             ghost.direction = direction > 0 ? .right : .left
         } else if ghost.position.y > corridorY + 0.0001 {
             ghost.position.y = max(corridorY, ghost.position.y - speed * deltaTime)
@@ -688,7 +690,9 @@ public final class PacManGame {
             let ghost = ghosts[index]
             guard ghost.state == .roam else { continue }
             let collisionRadius = 0.68
-            guard pac.position.distanceSquared(to: ghost.position) < collisionRadius * collisionRadius else {
+            guard
+                pac.position.distanceSquared(to: ghost.position) < collisionRadius * collisionRadius
+            else {
                 continue
             }
 
@@ -708,7 +712,9 @@ public final class PacManGame {
         addScore(points)
         ghosts[index].state = .eyes
         ghosts[index].forceReverse = false
-        popups.append(ScorePopup(position: ghosts[index].position, text: "\(points)", remaining: 1.2, duration: 1.2))
+        popups.append(
+            ScorePopup(
+                position: ghosts[index].position, text: "\(points)", remaining: 1.2, duration: 1.2))
         events.append(.ghostEaten(combo: min(ghostCombo - 1, 3)))
         freezeRemaining = 0.5
     }
@@ -783,7 +789,8 @@ public final class PacManGame {
 
     private func maybeSpawnFruit() {
         while nextFruitThresholdIndex < fruitThresholds.count,
-              dotsEatenThisLevel >= fruitThresholds[nextFruitThresholdIndex] {
+            dotsEatenThisLevel >= fruitThresholds[nextFruitThresholdIndex]
+        {
             activeFruit = ActiveFruit(
                 kind: FruitKind.forLevel(level),
                 position: Maze.fruitPosition,
@@ -805,7 +812,10 @@ public final class PacManGame {
         guard pac.position.distanceSquared(to: fruit.position) < radius * radius else { return }
 
         addScore(fruit.kind.points)
-        popups.append(ScorePopup(position: fruit.position, text: "\(fruit.kind.points)", remaining: 1.3, duration: 1.3))
+        popups.append(
+            ScorePopup(
+                position: fruit.position, text: "\(fruit.kind.points)", remaining: 1.3,
+                duration: 1.3))
         events.append(.fruitEaten(fruit.kind))
         activeFruit = nil
     }
@@ -860,7 +870,7 @@ public final class PacManGame {
                 homePosition: Maze.clydeStart,
                 releaseDelay: 8.2 * releaseScale,
                 forceReverse: false
-            )
+            ),
         ]
     }
 

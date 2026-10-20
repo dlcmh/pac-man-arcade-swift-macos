@@ -40,7 +40,8 @@ final class Renderer {
             throw RendererError.shaderCompilationFailed
         }
         guard let vertexFunction = library.makeFunction(name: "vertex_main"),
-              let fragmentFunction = library.makeFunction(name: "fragment_main") else {
+            let fragmentFunction = library.makeFunction(name: "fragment_main")
+        else {
             throw RendererError.shaderCompilationFailed
         }
 
@@ -68,7 +69,9 @@ final class Renderer {
 
         let initialCapacity = 100_000 * Canvas.floatsPerVertex * MemoryLayout<Float>.stride
         for _ in 0..<3 {
-            guard let buffer = device.makeBuffer(length: initialCapacity, options: .storageModeShared) else {
+            guard
+                let buffer = device.makeBuffer(length: initialCapacity, options: .storageModeShared)
+            else {
                 throw RendererError.couldNotCreateVertexBuffer
             }
             vertexBuffers.append(buffer)
@@ -77,11 +80,13 @@ final class Renderer {
 
     func render(game: PacManGame, in view: MTKView) {
         guard let drawable = view.currentDrawable,
-              let passDescriptor = view.currentRenderPassDescriptor else {
+            let passDescriptor = view.currentRenderPassDescriptor
+        else {
             return
         }
 
-        passDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.006, green: 0.008, blue: 0.020, alpha: 1.0)
+        passDescriptor.colorAttachments[0].clearColor = MTLClearColor(
+            red: 0.006, green: 0.008, blue: 0.020, alpha: 1.0)
 
         canvas.reset()
         drawBackdrop()
@@ -103,7 +108,9 @@ final class Renderer {
         let byteCount = canvas.vertices.count * MemoryLayout<Float>.stride
         if byteCount > vertexBuffers[frameIndex].length {
             let newLength = max(byteCount, vertexBuffers[frameIndex].length * 2)
-            guard let largerBuffer = device.makeBuffer(length: newLength, options: .storageModeShared) else {
+            guard
+                let largerBuffer = device.makeBuffer(length: newLength, options: .storageModeShared)
+            else {
                 inFlightSemaphore.signal()
                 return
             }
@@ -119,8 +126,9 @@ final class Renderer {
         }
 
         let drawableSize = view.drawableSize
-        let scale = min(Float(drawableSize.width) / Float(Self.designWidth),
-                        Float(drawableSize.height) / Float(Self.designHeight))
+        let scale = min(
+            Float(drawableSize.width) / Float(Self.designWidth),
+            Float(drawableSize.height) / Float(Self.designHeight))
         let offsetX = (Float(drawableSize.width) - Float(Self.designWidth) * scale) * 0.5
         let offsetY = (Float(drawableSize.height) - Float(Self.designHeight) * scale) * 0.5
 
@@ -131,7 +139,8 @@ final class Renderer {
         )
 
         guard let commandBuffer = commandQueue.makeCommandBuffer(),
-              let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: passDescriptor) else {
+            let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: passDescriptor)
+        else {
             inFlightSemaphore.signal()
             return
         }
@@ -154,36 +163,45 @@ final class Renderer {
     // MARK: - Coordinate helpers
 
     private func screenPoint(_ position: Vec2) -> CGPoint {
-        CGPoint(x: Self.mazeOrigin.x + CGFloat(position.x) * Self.tileSize,
-                y: Self.mazeOrigin.y + CGFloat(position.y) * Self.tileSize)
+        CGPoint(
+            x: Self.mazeOrigin.x + CGFloat(position.x) * Self.tileSize,
+            y: Self.mazeOrigin.y + CGFloat(position.y) * Self.tileSize)
     }
 
     private func tileScreenPoint(column: Int, row: Int) -> CGPoint {
-        CGPoint(x: Self.mazeOrigin.x + (CGFloat(column) + 0.5) * Self.tileSize,
-                y: Self.mazeOrigin.y + (CGFloat(row) + 0.5) * Self.tileSize)
+        CGPoint(
+            x: Self.mazeOrigin.x + (CGFloat(column) + 0.5) * Self.tileSize,
+            y: Self.mazeOrigin.y + (CGFloat(row) + 0.5) * Self.tileSize)
     }
 
     private var playfieldRect: CGRect {
-        CGRect(x: Self.mazeOrigin.x,
-               y: Self.mazeOrigin.y,
-               width: CGFloat(Maze.columns) * Self.tileSize,
-               height: CGFloat(Maze.rows) * Self.tileSize)
+        CGRect(
+            x: Self.mazeOrigin.x,
+            y: Self.mazeOrigin.y,
+            width: CGFloat(Maze.columns) * Self.tileSize,
+            height: CGFloat(Maze.rows) * Self.tileSize)
     }
 
     // MARK: - Background and maze
 
     private func drawBackdrop() {
-        canvas.addRect(x: 0, y: 0, width: Self.designWidth, height: Self.designHeight, color: Palette.background)
-        canvas.addRect(x: playfieldRect.minX,
-                       y: playfieldRect.minY,
-                       width: playfieldRect.width,
-                       height: playfieldRect.height,
-                       color: Palette.playfield)
+        canvas.addRect(
+            x: 0, y: 0, width: Self.designWidth, height: Self.designHeight,
+            color: Palette.background)
+        canvas.addRect(
+            x: playfieldRect.minX,
+            y: playfieldRect.minY,
+            width: playfieldRect.width,
+            height: playfieldRect.height,
+            color: Palette.playfield)
 
-        let centerGlow = CGPoint(x: Self.designWidth * 0.5,
-                                 y: Self.mazeOrigin.y + CGFloat(Maze.rows) * 0.5 * Self.tileSize)
-        canvas.addCircle(center: centerGlow, radius: 250, color: Color(0.05, 0.10, 0.36, 0.035), segments: 42)
-        canvas.addCircle(center: centerGlow, radius: 160, color: Color(0.08, 0.15, 0.48, 0.035), segments: 36)
+        let centerGlow = CGPoint(
+            x: Self.designWidth * 0.5,
+            y: Self.mazeOrigin.y + CGFloat(Maze.rows) * 0.5 * Self.tileSize)
+        canvas.addCircle(
+            center: centerGlow, radius: 250, color: Color(0.05, 0.10, 0.36, 0.035), segments: 42)
+        canvas.addCircle(
+            center: centerGlow, radius: 160, color: Color(0.08, 0.15, 0.48, 0.035), segments: 36)
 
         // A restrained cabinet frame around the playfield.
         let frameInset: CGFloat = 9
@@ -195,31 +213,55 @@ final class Renderer {
         let bracketLength: CGFloat = 26
         let bracketInset: CGFloat = 21
         let corners = [
-            (CGPoint(x: frame.minX + bracketInset, y: frame.minY + bracketInset), CGPoint(x: 1, y: 0), CGPoint(x: 0, y: 1)),
-            (CGPoint(x: frame.maxX - bracketInset, y: frame.minY + bracketInset), CGPoint(x: -1, y: 0), CGPoint(x: 0, y: 1)),
-            (CGPoint(x: frame.minX + bracketInset, y: frame.maxY - bracketInset), CGPoint(x: 1, y: 0), CGPoint(x: 0, y: -1)),
-            (CGPoint(x: frame.maxX - bracketInset, y: frame.maxY - bracketInset), CGPoint(x: -1, y: 0), CGPoint(x: 0, y: -1))
+            (
+                CGPoint(x: frame.minX + bracketInset, y: frame.minY + bracketInset),
+                CGPoint(x: 1, y: 0), CGPoint(x: 0, y: 1)
+            ),
+            (
+                CGPoint(x: frame.maxX - bracketInset, y: frame.minY + bracketInset),
+                CGPoint(x: -1, y: 0), CGPoint(x: 0, y: 1)
+            ),
+            (
+                CGPoint(x: frame.minX + bracketInset, y: frame.maxY - bracketInset),
+                CGPoint(x: 1, y: 0), CGPoint(x: 0, y: -1)
+            ),
+            (
+                CGPoint(x: frame.maxX - bracketInset, y: frame.maxY - bracketInset),
+                CGPoint(x: -1, y: 0), CGPoint(x: 0, y: -1)
+            ),
         ]
         for (origin, horizontal, vertical) in corners {
-            let hEnd = CGPoint(x: origin.x + horizontal.x * bracketLength, y: origin.y + horizontal.y * bracketLength)
-            let vEnd = CGPoint(x: origin.x + vertical.x * bracketLength, y: origin.y + vertical.y * bracketLength)
-            canvas.addLine(from: origin, to: hEnd, thickness: 2, color: Color(0.40, 0.54, 1.0, 0.45), rounded: false)
-            canvas.addLine(from: origin, to: vEnd, thickness: 2, color: Color(0.40, 0.54, 1.0, 0.45), rounded: false)
+            let hEnd = CGPoint(
+                x: origin.x + horizontal.x * bracketLength,
+                y: origin.y + horizontal.y * bracketLength)
+            let vEnd = CGPoint(
+                x: origin.x + vertical.x * bracketLength, y: origin.y + vertical.y * bracketLength)
+            canvas.addLine(
+                from: origin, to: hEnd, thickness: 2, color: Color(0.40, 0.54, 1.0, 0.45),
+                rounded: false)
+            canvas.addLine(
+                from: origin, to: vEnd, thickness: 2, color: Color(0.40, 0.54, 1.0, 0.45),
+                rounded: false)
         }
 
         // HUD divider.
-        canvas.addRect(x: 48, y: 94, width: Self.designWidth - 96, height: 1, color: Color(0.25, 0.35, 0.85, 0.22))
+        canvas.addRect(
+            x: 48, y: 94, width: Self.designWidth - 96, height: 1,
+            color: Color(0.25, 0.35, 0.85, 0.22))
     }
 
     private func drawMaze(game: PacManGame, flash: Bool) {
-        let wallFillColor: Color = flash
+        let wallFillColor: Color =
+            flash
             ? Color(0.16, 0.22, 0.58, 1)
             : Palette.wallFill
         let wallCoreColor: Color = flash ? Color(0.9, 0.95, 1.0, 1) : Palette.wall
-        let wallGlowColor: Color = flash
+        let wallGlowColor: Color =
+            flash
             ? Color(0.6, 0.78, 1.0, 0.18)
             : Palette.wallGlow
-        let wallMidColor: Color = flash
+        let wallMidColor: Color =
+            flash
             ? Color(0.9, 0.95, 1.0, 0.4)
             : Palette.wallMidGlow
 
@@ -241,14 +283,19 @@ final class Renderer {
         let tile = Self.tileSize
 
         func isWall(_ column: Int, _ row: Int) -> Bool {
-            guard column >= 0, column < Maze.columns, row >= 0, row < Maze.rows else { return false }
+            guard column >= 0, column < Maze.columns, row >= 0, row < Maze.rows else {
+                return false
+            }
             return game.maze.grid[row][column].isWall
         }
 
         func drawEdge(_ start: CGPoint, _ end: CGPoint) {
-            canvas.addLine(from: start, to: end, thickness: 7.2, color: wallGlowColor, rounded: false)
-            canvas.addLine(from: start, to: end, thickness: 3.5, color: wallMidColor, rounded: false)
-            canvas.addLine(from: start, to: end, thickness: 1.45, color: wallCoreColor, rounded: false)
+            canvas.addLine(
+                from: start, to: end, thickness: 7.2, color: wallGlowColor, rounded: false)
+            canvas.addLine(
+                from: start, to: end, thickness: 3.5, color: wallMidColor, rounded: false)
+            canvas.addLine(
+                from: start, to: end, thickness: 1.45, color: wallCoreColor, rounded: false)
         }
 
         for row in 0..<Maze.rows {
@@ -276,8 +323,11 @@ final class Renderer {
         let doorY = top + 12.5 * tile
         let doorStart = CGPoint(x: left + 13 * tile, y: doorY)
         let doorEnd = CGPoint(x: left + 15 * tile, y: doorY)
-        canvas.addLine(from: doorStart, to: doorEnd, thickness: 9, color: Color(1.0, 0.45, 0.8, 0.10), rounded: false)
-        canvas.addLine(from: doorStart, to: doorEnd, thickness: 3.0, color: Palette.door, rounded: false)
+        canvas.addLine(
+            from: doorStart, to: doorEnd, thickness: 9, color: Color(1.0, 0.45, 0.8, 0.10),
+            rounded: false)
+        canvas.addLine(
+            from: doorStart, to: doorEnd, thickness: 3.0, color: Palette.door, rounded: false)
     }
 
     private func drawPellets(game: PacManGame) {
@@ -286,18 +336,24 @@ final class Renderer {
             let center = tileScreenPoint(column: point.x, row: point.y)
             switch mazeTile {
             case .dot:
-                canvas.addCircle(center: center, radius: 4.0, color: Palette.pelletGlow, segments: 10)
+                canvas.addCircle(
+                    center: center, radius: 4.0, color: Palette.pelletGlow, segments: 10)
                 canvas.addCircle(center: center, radius: 2.15, color: Palette.pellet, segments: 10)
             case .powerPellet:
                 let pulse = 0.82 + 0.18 * abs(sin(game.elapsed * 5.0 + Double(point.x) * 0.7))
                 let radius = 6.4 * pulse
-                canvas.addCircle(center: center, radius: radius * 2.25, color: Palette.pelletGlow, segments: 18)
-                canvas.addCircle(center: center, radius: radius + 2.0, color: Color(1.0, 0.75, 0.45, 0.25), segments: 18)
-                canvas.addCircle(center: center, radius: radius, color: Palette.pellet, segments: 18)
-                canvas.addCircle(center: CGPoint(x: center.x - radius * 0.25, y: center.y - radius * 0.3),
-                                 radius: radius * 0.34,
-                                 color: Color(1, 0.98, 0.88, 0.55),
-                                 segments: 12)
+                canvas.addCircle(
+                    center: center, radius: radius * 2.25, color: Palette.pelletGlow, segments: 18)
+                canvas.addCircle(
+                    center: center, radius: radius + 2.0, color: Color(1.0, 0.75, 0.45, 0.25),
+                    segments: 18)
+                canvas.addCircle(
+                    center: center, radius: radius, color: Palette.pellet, segments: 18)
+                canvas.addCircle(
+                    center: CGPoint(x: center.x - radius * 0.25, y: center.y - radius * 0.3),
+                    radius: radius * 0.34,
+                    color: Color(1, 0.98, 0.88, 0.55),
+                    segments: 12)
             default:
                 break
             }
@@ -333,35 +389,41 @@ final class Renderer {
             bodyColor.w = Float(1.0 - progress * 0.55)
             var glowColor = Palette.pacmanGlow
             glowColor.w *= Float(1.0 - progress * 0.6)
-            canvas.addCircle(center: center, radius: bodyRadius * 1.55, color: glowColor, segments: 24)
-            canvas.addPie(center: center,
-                          radius: bodyRadius,
-                          startAngle: directionAngle + spin + mouth,
-                          endAngle: directionAngle + spin + .pi * 2 - mouth,
-                          color: bodyColor,
-                          segments: 48)
+            canvas.addCircle(
+                center: center, radius: bodyRadius * 1.55, color: glowColor, segments: 24)
+            canvas.addPie(
+                center: center,
+                radius: bodyRadius,
+                startAngle: directionAngle + spin + mouth,
+                endAngle: directionAngle + spin + .pi * 2 - mouth,
+                color: bodyColor,
+                segments: 48)
             return
         }
 
         let mouth = CGFloat(0.10 + 0.33 * abs(sin(game.elapsed * 11.2)))
-        canvas.addCircle(center: center,
-                         radius: radius * 1.62,
-                         color: Palette.pacmanGlow,
-                         segments: 26)
-        canvas.addCircle(center: center,
-                         radius: radius * 1.26,
-                         color: Color(1.0, 0.72, 0.04, 0.08),
-                         segments: 22)
-        canvas.addPie(center: center,
-                      radius: radius,
-                      startAngle: directionAngle + mouth,
-                      endAngle: directionAngle + .pi * 2 - mouth,
-                      color: Palette.pacman,
-                      segments: 52)
-        canvas.addCircle(center: CGPoint(x: center.x - 3.0, y: center.y - 3.2),
-                         radius: 4.2,
-                         color: Color(1, 0.98, 0.75, 0.12),
-                         segments: 14)
+        canvas.addCircle(
+            center: center,
+            radius: radius * 1.62,
+            color: Palette.pacmanGlow,
+            segments: 26)
+        canvas.addCircle(
+            center: center,
+            radius: radius * 1.26,
+            color: Color(1.0, 0.72, 0.04, 0.08),
+            segments: 22)
+        canvas.addPie(
+            center: center,
+            radius: radius,
+            startAngle: directionAngle + mouth,
+            endAngle: directionAngle + .pi * 2 - mouth,
+            color: Palette.pacman,
+            segments: 52)
+        canvas.addCircle(
+            center: CGPoint(x: center.x - 3.0, y: center.y - 3.2),
+            radius: 4.2,
+            color: Color(1, 0.98, 0.75, 0.12),
+            segments: 14)
 
         let eyeLocal = CGPoint(x: 2.2, y: -4.2)
         let cosA = cos(directionAngle)
@@ -370,11 +432,13 @@ final class Renderer {
             x: center.x + eyeLocal.x * cosA - eyeLocal.y * sinA,
             y: center.y + eyeLocal.x * sinA + eyeLocal.y * cosA
         )
-        canvas.addCircle(center: eyeCenter, radius: 1.85, color: Color(0.06, 0.05, 0.03, 1), segments: 12)
-        canvas.addCircle(center: CGPoint(x: eyeCenter.x - 0.45, y: eyeCenter.y - 0.5),
-                         radius: 0.55,
-                         color: Color(1, 1, 0.9, 0.75),
-                         segments: 8)
+        canvas.addCircle(
+            center: eyeCenter, radius: 1.85, color: Color(0.06, 0.05, 0.03, 1), segments: 12)
+        canvas.addCircle(
+            center: CGPoint(x: eyeCenter.x - 0.45, y: eyeCenter.y - 0.5),
+            radius: 0.55,
+            color: Color(1, 1, 0.9, 0.75),
+            segments: 8)
     }
 
     private func drawGhost(ghost: Ghost, game: PacManGame) {
@@ -391,17 +455,19 @@ final class Renderer {
         }
 
         if ghost.state == .eyes {
-            canvas.addCircle(center: center, radius: 18, color: Color(0.25, 0.55, 1.0, 0.05), segments: 18)
+            canvas.addCircle(
+                center: center, radius: 18, color: Color(0.25, 0.55, 1.0, 0.05), segments: 18)
         } else {
             var glow = bodyColor
             glow.w = 0.13
             canvas.addCircle(center: center, radius: 18.5, color: glow, segments: 22)
             drawGhostBody(center: center, color: bodyColor)
-            canvas.addEllipse(center: CGPoint(x: center.x - 3.5, y: center.y - 4.5),
-                              radiusX: 4.2,
-                              radiusY: 2.4,
-                              color: Color(1, 1, 1, 0.075),
-                              segments: 16)
+            canvas.addEllipse(
+                center: CGPoint(x: center.x - 3.5, y: center.y - 4.5),
+                radiusX: 4.2,
+                radiusY: 2.4,
+                color: Color(1, 1, 1, 0.075),
+                segments: 16)
         }
 
         if frightened {
@@ -422,8 +488,10 @@ final class Renderer {
         points.append(CGPoint(x: center.x - radius, y: baseY))
         for index in 0...18 {
             let angle = CGFloat.pi + CGFloat(index) / 18.0 * CGFloat.pi
-            points.append(CGPoint(x: center.x + cos(angle) * radius,
-                                  y: headCenterY + sin(angle) * radius))
+            points.append(
+                CGPoint(
+                    x: center.x + cos(angle) * radius,
+                    y: headCenterY + sin(angle) * radius))
         }
         points.append(CGPoint(x: center.x + radius, y: baseY))
         points.append(CGPoint(x: center.x + radius * 0.66, y: waveY))
@@ -444,24 +512,29 @@ final class Renderer {
         let look = CGPoint(x: CGFloat(direction.dx) * 1.55, y: CGFloat(direction.dy) * 1.55)
 
         for side in [-1.0, 1.0] {
-            let eyeCenter = CGPoint(x: center.x + CGFloat(side) * eyeOffsetX, y: center.y + eyeOffsetY)
-            canvas.addCircle(center: eyeCenter, radius: eyeRadius, color: Palette.ghostEye, segments: 18)
+            let eyeCenter = CGPoint(
+                x: center.x + CGFloat(side) * eyeOffsetX, y: center.y + eyeOffsetY)
+            canvas.addCircle(
+                center: eyeCenter, radius: eyeRadius, color: Palette.ghostEye, segments: 18)
             let pupilCenter = CGPoint(x: eyeCenter.x + look.x, y: eyeCenter.y + look.y)
-            canvas.addCircle(center: pupilCenter, radius: pupilRadius, color: Palette.ghostPupil, segments: 14)
-            canvas.addCircle(center: CGPoint(x: pupilCenter.x - 0.55, y: pupilCenter.y - 0.55),
-                             radius: 0.7,
-                             color: Color(0.8, 0.95, 1, 0.65),
-                             segments: 8)
+            canvas.addCircle(
+                center: pupilCenter, radius: pupilRadius, color: Palette.ghostPupil, segments: 14)
+            canvas.addCircle(
+                center: CGPoint(x: pupilCenter.x - 0.55, y: pupilCenter.y - 0.55),
+                radius: 0.7,
+                color: Color(0.8, 0.95, 1, 0.65),
+                segments: 8)
         }
     }
 
     private func drawFrightenedFace(center: CGPoint, flashing: Bool) {
         let featureColor = flashing ? Palette.frightened : Palette.ghostEye
         for side in [-1.0, 1.0] {
-            canvas.addCircle(center: CGPoint(x: center.x + CGFloat(side) * 4.1, y: center.y - 2.3),
-                             radius: 2.3,
-                             color: featureColor,
-                             segments: 12)
+            canvas.addCircle(
+                center: CGPoint(x: center.x + CGFloat(side) * 4.1, y: center.y - 2.3),
+                radius: 2.3,
+                color: featureColor,
+                segments: 12)
         }
         let mouthPoints: [CGPoint] = [
             CGPoint(x: center.x - 5.4, y: center.y + 5.0),
@@ -469,7 +542,7 @@ final class Renderer {
             CGPoint(x: center.x - 1.0, y: center.y + 5.0),
             CGPoint(x: center.x + 1.2, y: center.y + 3.4),
             CGPoint(x: center.x + 3.4, y: center.y + 5.0),
-            CGPoint(x: center.x + 5.4, y: center.y + 3.4)
+            CGPoint(x: center.x + 5.4, y: center.y + 3.4),
         ]
         canvas.addPolyline(mouthPoints, thickness: 1.5, color: featureColor)
     }
@@ -499,7 +572,8 @@ final class Renderer {
     private func drawActiveFruit(game: PacManGame) {
         guard let fruit = game.activeFruit else { return }
         let center = screenPoint(fruit.position)
-        canvas.addCircle(center: center, radius: 24, color: Color(1.0, 0.55, 0.2, 0.055), segments: 20)
+        canvas.addCircle(
+            center: center, radius: 24, color: Color(1.0, 0.55, 0.2, 0.055), segments: 20)
         drawFruit(kind: fruit.kind, center: center, scale: 1.0, alpha: 1.0)
     }
 
@@ -525,20 +599,25 @@ final class Renderer {
         case .cherry:
             let left = CGPoint(x: center.x - 5.5 * scale, y: center.y + 4.0 * scale)
             let right = CGPoint(x: center.x + 5.5 * scale, y: center.y + 3.0 * scale)
-            canvas.addLine(from: CGPoint(x: left.x + 1, y: left.y - 4 * scale),
-                           to: CGPoint(x: center.x + 2 * scale, y: center.y - 11 * scale),
-                           thickness: 1.5 * scale, color: green)
-            canvas.addLine(from: CGPoint(x: right.x - 1, y: right.y - 4 * scale),
-                           to: CGPoint(x: center.x + 2 * scale, y: center.y - 11 * scale),
-                           thickness: 1.5 * scale, color: green)
-            canvas.addEllipse(center: CGPoint(x: center.x + 8 * scale, y: center.y - 10 * scale),
-                              radiusX: 5 * scale, radiusY: 2.5 * scale, color: green)
+            canvas.addLine(
+                from: CGPoint(x: left.x + 1, y: left.y - 4 * scale),
+                to: CGPoint(x: center.x + 2 * scale, y: center.y - 11 * scale),
+                thickness: 1.5 * scale, color: green)
+            canvas.addLine(
+                from: CGPoint(x: right.x - 1, y: right.y - 4 * scale),
+                to: CGPoint(x: center.x + 2 * scale, y: center.y - 11 * scale),
+                thickness: 1.5 * scale, color: green)
+            canvas.addEllipse(
+                center: CGPoint(x: center.x + 8 * scale, y: center.y - 10 * scale),
+                radiusX: 5 * scale, radiusY: 2.5 * scale, color: green)
             canvas.addCircle(center: left, radius: 5.5 * scale, color: deepRed)
             canvas.addCircle(center: right, radius: 5.5 * scale, color: red)
-            canvas.addCircle(center: CGPoint(x: left.x - 1.8 * scale, y: left.y - 2 * scale),
-                             radius: 1.4 * scale, color: shine)
-            canvas.addCircle(center: CGPoint(x: right.x - 1.8 * scale, y: right.y - 2 * scale),
-                             radius: 1.4 * scale, color: shine)
+            canvas.addCircle(
+                center: CGPoint(x: left.x - 1.8 * scale, y: left.y - 2 * scale),
+                radius: 1.4 * scale, color: shine)
+            canvas.addCircle(
+                center: CGPoint(x: right.x - 1.8 * scale, y: right.y - 2 * scale),
+                radius: 1.4 * scale, color: shine)
 
         case .strawberry:
             var body = [CGPoint]()
@@ -551,48 +630,70 @@ final class Renderer {
             body.append(CGPoint(x: center.x - 5 * scale, y: center.y - 7 * scale))
             canvas.addPolygon(points: body, color: red)
             for side in [-1.0, 0.0, 1.0] {
-                canvas.addEllipse(center: CGPoint(x: center.x + CGFloat(side) * 3.5 * scale, y: center.y - 7 * scale),
-                                  radiusX: 4.3 * scale, radiusY: 2.1 * scale, color: green)
+                canvas.addEllipse(
+                    center: CGPoint(
+                        x: center.x + CGFloat(side) * 3.5 * scale, y: center.y - 7 * scale),
+                    radiusX: 4.3 * scale, radiusY: 2.1 * scale, color: green)
             }
-            canvas.addLine(from: CGPoint(x: center.x, y: center.y - 8 * scale),
-                           to: CGPoint(x: center.x + 2 * scale, y: center.y - 12 * scale),
-                           thickness: 1.4 * scale, color: darkGreen)
-            for point in [CGPoint(x: -3, y: 0), CGPoint(x: 3, y: 1), CGPoint(x: 0, y: 5), CGPoint(x: -2, y: 7), CGPoint(x: 4, y: 6)] {
-                canvas.addCircle(center: CGPoint(x: center.x + point.x * scale, y: center.y + point.y * scale),
-                                 radius: 0.8 * scale, color: yellow, segments: 6)
+            canvas.addLine(
+                from: CGPoint(x: center.x, y: center.y - 8 * scale),
+                to: CGPoint(x: center.x + 2 * scale, y: center.y - 12 * scale),
+                thickness: 1.4 * scale, color: darkGreen)
+            for point in [
+                CGPoint(x: -3, y: 0), CGPoint(x: 3, y: 1), CGPoint(x: 0, y: 5),
+                CGPoint(x: -2, y: 7), CGPoint(x: 4, y: 6),
+            ] {
+                canvas.addCircle(
+                    center: CGPoint(x: center.x + point.x * scale, y: center.y + point.y * scale),
+                    radius: 0.8 * scale, color: yellow, segments: 6)
             }
 
         case .orange:
-            canvas.addCircle(center: CGPoint(x: center.x, y: center.y + 2 * scale), radius: 8.5 * scale, color: orange)
-            canvas.addEllipse(center: CGPoint(x: center.x + 5 * scale, y: center.y - 7.5 * scale),
-                              radiusX: 5 * scale, radiusY: 2.4 * scale, color: green)
-            canvas.addLine(from: CGPoint(x: center.x, y: center.y - 6 * scale),
-                           to: CGPoint(x: center.x + 1 * scale, y: center.y - 11 * scale),
-                           thickness: 1.5 * scale, color: stem)
-            canvas.addCircle(center: CGPoint(x: center.x - 2.8 * scale, y: center.y - 1 * scale),
-                             radius: 1.9 * scale, color: shine)
+            canvas.addCircle(
+                center: CGPoint(x: center.x, y: center.y + 2 * scale), radius: 8.5 * scale,
+                color: orange)
+            canvas.addEllipse(
+                center: CGPoint(x: center.x + 5 * scale, y: center.y - 7.5 * scale),
+                radiusX: 5 * scale, radiusY: 2.4 * scale, color: green)
+            canvas.addLine(
+                from: CGPoint(x: center.x, y: center.y - 6 * scale),
+                to: CGPoint(x: center.x + 1 * scale, y: center.y - 11 * scale),
+                thickness: 1.5 * scale, color: stem)
+            canvas.addCircle(
+                center: CGPoint(x: center.x - 2.8 * scale, y: center.y - 1 * scale),
+                radius: 1.9 * scale, color: shine)
 
         case .apple:
-            canvas.addCircle(center: CGPoint(x: center.x - 3.7 * scale, y: center.y + 1 * scale), radius: 6.3 * scale, color: red)
-            canvas.addCircle(center: CGPoint(x: center.x + 3.7 * scale, y: center.y + 1 * scale), radius: 6.3 * scale, color: red)
-            canvas.addLine(from: CGPoint(x: center.x, y: center.y - 5 * scale),
-                           to: CGPoint(x: center.x + 1 * scale, y: center.y - 12 * scale),
-                           thickness: 1.8 * scale, color: stem)
-            canvas.addEllipse(center: CGPoint(x: center.x + 5 * scale, y: center.y - 9 * scale),
-                              radiusX: 4.5 * scale, radiusY: 2.2 * scale, color: green)
-            canvas.addCircle(center: CGPoint(x: center.x - 4 * scale, y: center.y - 1 * scale),
-                             radius: 1.5 * scale, color: shine)
+            canvas.addCircle(
+                center: CGPoint(x: center.x - 3.7 * scale, y: center.y + 1 * scale),
+                radius: 6.3 * scale, color: red)
+            canvas.addCircle(
+                center: CGPoint(x: center.x + 3.7 * scale, y: center.y + 1 * scale),
+                radius: 6.3 * scale, color: red)
+            canvas.addLine(
+                from: CGPoint(x: center.x, y: center.y - 5 * scale),
+                to: CGPoint(x: center.x + 1 * scale, y: center.y - 12 * scale),
+                thickness: 1.8 * scale, color: stem)
+            canvas.addEllipse(
+                center: CGPoint(x: center.x + 5 * scale, y: center.y - 9 * scale),
+                radiusX: 4.5 * scale, radiusY: 2.2 * scale, color: green)
+            canvas.addCircle(
+                center: CGPoint(x: center.x - 4 * scale, y: center.y - 1 * scale),
+                radius: 1.5 * scale, color: shine)
 
         case .melon:
-            canvas.addCircle(center: center, radius: 9 * scale, color: tinted(Color(0.52, 0.86, 0.27, 1)))
+            canvas.addCircle(
+                center: center, radius: 9 * scale, color: tinted(Color(0.52, 0.86, 0.27, 1)))
             for offset in [-4.0, 0.0, 4.0] {
-                canvas.addLine(from: CGPoint(x: center.x + CGFloat(offset) * scale, y: center.y - 8 * scale),
-                               to: CGPoint(x: center.x + CGFloat(offset) * scale, y: center.y + 8 * scale),
-                               thickness: 1.2 * scale,
-                               color: darkGreen)
+                canvas.addLine(
+                    from: CGPoint(x: center.x + CGFloat(offset) * scale, y: center.y - 8 * scale),
+                    to: CGPoint(x: center.x + CGFloat(offset) * scale, y: center.y + 8 * scale),
+                    thickness: 1.2 * scale,
+                    color: darkGreen)
             }
-            canvas.addEllipse(center: CGPoint(x: center.x + 5 * scale, y: center.y - 7 * scale),
-                              radiusX: 4.5 * scale, radiusY: 2.0 * scale, color: darkGreen)
+            canvas.addEllipse(
+                center: CGPoint(x: center.x + 5 * scale, y: center.y - 7 * scale),
+                radiusX: 4.5 * scale, radiusY: 2.0 * scale, color: darkGreen)
 
         case .galaxian:
             let wingPoints = [
@@ -601,15 +702,17 @@ final class Renderer {
                 CGPoint(x: center.x + 3 * scale, y: center.y + 3 * scale),
                 CGPoint(x: center.x, y: center.y + 9 * scale),
                 CGPoint(x: center.x - 3 * scale, y: center.y + 3 * scale),
-                CGPoint(x: center.x - 11 * scale, y: center.y + 6 * scale)
+                CGPoint(x: center.x - 11 * scale, y: center.y + 6 * scale),
             ]
             canvas.addPolygon(points: wingPoints, color: cyan)
-            canvas.addTriangle(CGPoint(x: center.x, y: center.y - 9 * scale),
-                               CGPoint(x: center.x + 4 * scale, y: center.y + 4 * scale),
-                               CGPoint(x: center.x - 4 * scale, y: center.y + 4 * scale),
-                               color: yellow)
-            canvas.addCircle(center: CGPoint(x: center.x, y: center.y - 1 * scale),
-                             radius: 2.4 * scale, color: red)
+            canvas.addTriangle(
+                CGPoint(x: center.x, y: center.y - 9 * scale),
+                CGPoint(x: center.x + 4 * scale, y: center.y + 4 * scale),
+                CGPoint(x: center.x - 4 * scale, y: center.y + 4 * scale),
+                color: yellow)
+            canvas.addCircle(
+                center: CGPoint(x: center.x, y: center.y - 1 * scale),
+                radius: 2.4 * scale, color: red)
 
         case .bell:
             let bellPoints = [
@@ -617,33 +720,40 @@ final class Renderer {
                 CGPoint(x: center.x - 6 * scale, y: center.y - 5 * scale),
                 CGPoint(x: center.x, y: center.y - 10 * scale),
                 CGPoint(x: center.x + 6 * scale, y: center.y - 5 * scale),
-                CGPoint(x: center.x + 8 * scale, y: center.y + 4 * scale)
+                CGPoint(x: center.x + 8 * scale, y: center.y + 4 * scale),
             ]
             canvas.addPolygon(points: bellPoints, color: gold)
-            canvas.addRect(x: center.x - 10 * scale, y: center.y + 4 * scale,
-                           width: 20 * scale, height: 3 * scale, color: yellow)
-            canvas.addCircle(center: CGPoint(x: center.x, y: center.y + 8.5 * scale),
-                             radius: 2.2 * scale, color: yellow)
-            canvas.addEllipse(center: CGPoint(x: center.x - 5 * scale, y: center.y - 3 * scale),
-                              radiusX: 1.8 * scale, radiusY: 4.0 * scale, color: shine)
+            canvas.addRect(
+                x: center.x - 10 * scale, y: center.y + 4 * scale,
+                width: 20 * scale, height: 3 * scale, color: yellow)
+            canvas.addCircle(
+                center: CGPoint(x: center.x, y: center.y + 8.5 * scale),
+                radius: 2.2 * scale, color: yellow)
+            canvas.addEllipse(
+                center: CGPoint(x: center.x - 5 * scale, y: center.y - 3 * scale),
+                radiusX: 1.8 * scale, radiusY: 4.0 * scale, color: shine)
 
         case .key:
-            canvas.addRing(center: CGPoint(x: center.x - 5 * scale, y: center.y - 5 * scale),
-                           radius: 5 * scale,
-                           thickness: 2.2 * scale,
-                           color: cyan)
-            canvas.addLine(from: CGPoint(x: center.x - 1.5 * scale, y: center.y - 1.5 * scale),
-                           to: CGPoint(x: center.x + 7 * scale, y: center.y + 8 * scale),
-                           thickness: 2.3 * scale,
-                           color: cyan)
-            canvas.addLine(from: CGPoint(x: center.x + 4 * scale, y: center.y + 5 * scale),
-                           to: CGPoint(x: center.x + 8 * scale, y: center.y + 1 * scale),
-                           thickness: 1.8 * scale,
-                           color: cyan)
-            canvas.addLine(from: CGPoint(x: center.x + 6.5 * scale, y: center.y + 7.5 * scale),
-                           to: CGPoint(x: center.x + 10.5 * scale, y: center.y + 3.5 * scale),
-                           thickness: 1.8 * scale,
-                           color: cyan)
+            canvas.addRing(
+                center: CGPoint(x: center.x - 5 * scale, y: center.y - 5 * scale),
+                radius: 5 * scale,
+                thickness: 2.2 * scale,
+                color: cyan)
+            canvas.addLine(
+                from: CGPoint(x: center.x - 1.5 * scale, y: center.y - 1.5 * scale),
+                to: CGPoint(x: center.x + 7 * scale, y: center.y + 8 * scale),
+                thickness: 2.3 * scale,
+                color: cyan)
+            canvas.addLine(
+                from: CGPoint(x: center.x + 4 * scale, y: center.y + 5 * scale),
+                to: CGPoint(x: center.x + 8 * scale, y: center.y + 1 * scale),
+                thickness: 1.8 * scale,
+                color: cyan)
+            canvas.addLine(
+                from: CGPoint(x: center.x + 6.5 * scale, y: center.y + 7.5 * scale),
+                to: CGPoint(x: center.x + 10.5 * scale, y: center.y + 3.5 * scale),
+                thickness: 1.8 * scale,
+                color: cyan)
         }
     }
 
@@ -651,13 +761,22 @@ final class Renderer {
 
     private func drawHUD(game: PacManGame) {
         font.draw("1UP", x: 150, y: 27, pixelSize: 2.4, color: Palette.dimBlue, alignment: .center)
-        font.draw(paddedScore(game.score), x: 150, y: 49, pixelSize: 3.0, color: Palette.white, alignment: .center)
+        font.draw(
+            paddedScore(game.score), x: 150, y: 49, pixelSize: 3.0, color: Palette.white,
+            alignment: .center)
 
-        font.draw("HIGH SCORE", x: Self.designWidth * 0.5, y: 27, pixelSize: 2.4, color: Palette.scoreCyan, alignment: .center)
-        font.draw(paddedScore(game.highScore), x: Self.designWidth * 0.5, y: 49, pixelSize: 3.0, color: Palette.white, alignment: .center)
+        font.draw(
+            "HIGH SCORE", x: Self.designWidth * 0.5, y: 27, pixelSize: 2.4,
+            color: Palette.scoreCyan, alignment: .center)
+        font.draw(
+            paddedScore(game.highScore), x: Self.designWidth * 0.5, y: 49, pixelSize: 3.0,
+            color: Palette.white, alignment: .center)
 
-        font.draw("LEVEL", x: 746, y: 27, pixelSize: 2.4, color: Palette.dimBlue, alignment: .center)
-        font.draw(String(format: "%02d", min(game.level, 99)), x: 746, y: 49, pixelSize: 3.0, color: Palette.white, alignment: .center)
+        font.draw(
+            "LEVEL", x: 746, y: 27, pixelSize: 2.4, color: Palette.dimBlue, alignment: .center)
+        font.draw(
+            String(format: "%02d", min(game.level, 99)), x: 746, y: 49, pixelSize: 3.0,
+            color: Palette.white, alignment: .center)
 
         // Lives in the lower-left corner.
         font.draw("LIVES", x: 62, y: 1002, pixelSize: 1.55, color: Palette.faintBlue)
@@ -667,31 +786,42 @@ final class Renderer {
             drawLifePacman(center: center)
         }
         if game.displayedLives > 4 {
-            font.draw("+\(game.displayedLives - 4)", x: 76 + 4 * 29, y: 1028, pixelSize: 1.7, color: Palette.pellet)
+            font.draw(
+                "+\(game.displayedLives - 4)", x: 76 + 4 * 29, y: 1028, pixelSize: 1.7,
+                color: Palette.pellet)
         }
 
         // Level fruit in the lower-right corner.
         let fruitCenter = CGPoint(x: 818, y: 1028)
         drawFruit(kind: game.currentFruitKind, center: fruitCenter, scale: 0.85, alpha: 0.9)
         let pointLabel = "\(game.currentFruitKind.points)"
-        font.draw(pointLabel, x: 818, y: 1054, pixelSize: 1.5, color: Palette.faintBlue, alignment: .center)
+        font.draw(
+            pointLabel, x: 818, y: 1054, pixelSize: 1.5, color: Palette.faintBlue,
+            alignment: .center)
 
         // Controls.
-        font.draw("ARROWS / WASD", x: Self.designWidth * 0.5, y: 1006, pixelSize: 1.65, color: Palette.dimBlue, alignment: .center)
+        font.draw(
+            "ARROWS / WASD", x: Self.designWidth * 0.5, y: 1006, pixelSize: 1.65,
+            color: Palette.dimBlue, alignment: .center)
         let muteLabel = isMuted ? "M SOUND OFF" : "M MUTE"
-        font.draw("P PAUSE    \(muteLabel)", x: Self.designWidth * 0.5, y: 1041, pixelSize: 1.45, color: Palette.faintBlue, alignment: .center)
+        font.draw(
+            "P PAUSE    \(muteLabel)", x: Self.designWidth * 0.5, y: 1041, pixelSize: 1.45,
+            color: Palette.faintBlue, alignment: .center)
 
-        font.draw("A METAL TRIBUTE TO THE 1980 ARCADE", x: Self.designWidth * 0.5, y: 1072, pixelSize: 1.1, color: Color(0.20, 0.27, 0.50, 0.9), alignment: .center)
+        font.draw(
+            "A METAL TRIBUTE TO THE 1980 ARCADE", x: Self.designWidth * 0.5, y: 1072,
+            pixelSize: 1.1, color: Color(0.20, 0.27, 0.50, 0.9), alignment: .center)
     }
 
     private func drawLifePacman(center: CGPoint) {
         canvas.addCircle(center: center, radius: 11.5, color: Palette.pacmanGlow, segments: 16)
-        canvas.addPie(center: center,
-                      radius: 8.4,
-                      startAngle: 0.42,
-                      endAngle: .pi * 2 - 0.42,
-                      color: Palette.pacman,
-                      segments: 28)
+        canvas.addPie(
+            center: center,
+            radius: 8.4,
+            startAngle: 0.42,
+            endAngle: .pi * 2 - 0.42,
+            color: Palette.pacman,
+            segments: 28)
     }
 
     private func paddedScore(_ value: Int) -> String {
@@ -721,26 +851,29 @@ final class Renderer {
     }
 
     private func drawAttractOverlay(game: PacManGame) {
-        canvas.addRect(x: playfieldRect.minX, y: playfieldRect.minY,
-                       width: playfieldRect.width, height: playfieldRect.height,
-                       color: Color(0, 0, 0, 0.58))
+        canvas.addRect(
+            x: playfieldRect.minX, y: playfieldRect.minY,
+            width: playfieldRect.width, height: playfieldRect.height,
+            color: Color(0, 0, 0, 0.58))
 
         let panel = CGRect(x: 112, y: 244, width: 672, height: 520)
         drawPanel(panel: panel, fillAlpha: 0.93, borderColor: Color(0.28, 0.46, 1.0, 0.6))
 
         drawLargeTitle("PAC-MAN", centerX: Self.designWidth * 0.5, y: 294)
 
-        font.draw("THE ORIGINAL ARCADE", x: Self.designWidth * 0.5, y: 382,
-                  pixelSize: 2.05, color: Palette.scoreCyan, alignment: .center)
+        font.draw(
+            "THE ORIGINAL ARCADE", x: Self.designWidth * 0.5, y: 382,
+            pixelSize: 2.05, color: Palette.scoreCyan, alignment: .center)
 
-        canvas.addLine(from: CGPoint(x: 244, y: 415), to: CGPoint(x: 652, y: 415),
-                       thickness: 1, color: Color(0.32, 0.52, 1.0, 0.36), rounded: false)
+        canvas.addLine(
+            from: CGPoint(x: 244, y: 415), to: CGPoint(x: 652, y: 415),
+            thickness: 1, color: Color(0.32, 0.52, 1.0, 0.36), rounded: false)
 
         let gallery: [(GhostKind, String, CGFloat)] = [
             (.blinky, "BLINKY", 310),
             (.pinky, "PINKY", 402),
             (.inky, "INKY", 494),
-            (.clyde, "CLYDE", 586)
+            (.clyde, "CLYDE", 586),
         ]
         for (kind, name, x) in gallery {
             let center = CGPoint(x: x, y: 466)
@@ -750,128 +883,156 @@ final class Renderer {
             canvas.addCircle(center: center, radius: 21, color: glow, segments: 20)
             drawGhostBody(center: center, color: color)
             drawGhostEyes(center: center, direction: .left, large: false)
-            font.draw(name, x: x, y: 493, pixelSize: 1.45, color: Palette.dimBlue, alignment: .center)
+            font.draw(
+                name, x: x, y: 493, pixelSize: 1.45, color: Palette.dimBlue, alignment: .center)
         }
 
         // Pac-Man chasing the lineup.
         let pacCenter = CGPoint(x: 448, y: 538)
         let mascotMouth = 0.32 + 0.28 * abs(sin(game.elapsed * 5.5))
         canvas.addCircle(center: pacCenter, radius: 18, color: Palette.pacmanGlow, segments: 20)
-        canvas.addPie(center: pacCenter, radius: 12.5,
-                      startAngle: mascotMouth,
-                      endAngle: .pi * 2 - mascotMouth,
-                      color: Palette.pacman,
-                      segments: 36)
+        canvas.addPie(
+            center: pacCenter, radius: 12.5,
+            startAngle: mascotMouth,
+            endAngle: .pi * 2 - mascotMouth,
+            color: Palette.pacman,
+            segments: 36)
 
         let promptPulse = 0.68 + 0.32 * abs(sin(game.elapsed * 2.1))
         var promptColor = Palette.white
         promptColor.w = Float(promptPulse)
-        font.drawGlow("PRESS ENTER TO PLAY", x: Self.designWidth * 0.5, y: 596,
-                      pixelSize: 2.7, color: promptColor,
-                      alignment: .center, glowColor: Color(0.40, 0.55, 1.0, Float(0.35 * promptPulse)))
+        font.drawGlow(
+            "PRESS ENTER TO PLAY", x: Self.designWidth * 0.5, y: 596,
+            pixelSize: 2.7, color: promptColor,
+            alignment: .center, glowColor: Color(0.40, 0.55, 1.0, Float(0.35 * promptPulse)))
 
-        font.draw("ARROWS OR WASD TO MOVE", x: Self.designWidth * 0.5, y: 650,
-                  pixelSize: 1.65, color: Palette.dimBlue, alignment: .center)
-        font.draw("EAT EVERY DOT  -  AVOID THE GHOSTS", x: Self.designWidth * 0.5, y: 678,
-                  pixelSize: 1.45, color: Palette.faintBlue, alignment: .center)
-        font.draw("POWER PELLETS TURN THE TABLES", x: Self.designWidth * 0.5, y: 701,
-                  pixelSize: 1.45, color: Palette.faintBlue, alignment: .center)
+        font.draw(
+            "ARROWS OR WASD TO MOVE", x: Self.designWidth * 0.5, y: 650,
+            pixelSize: 1.65, color: Palette.dimBlue, alignment: .center)
+        font.draw(
+            "EAT EVERY DOT  -  AVOID THE GHOSTS", x: Self.designWidth * 0.5, y: 678,
+            pixelSize: 1.45, color: Palette.faintBlue, alignment: .center)
+        font.draw(
+            "POWER PELLETS TURN THE TABLES", x: Self.designWidth * 0.5, y: 701,
+            pixelSize: 1.45, color: Palette.faintBlue, alignment: .center)
 
         font.draw("1 CREDIT", x: 150, y: 730, pixelSize: 1.55, color: Palette.pellet)
         if game.highScore > 0 {
-            font.draw("BEST \(paddedScore(game.highScore))", x: 746, y: 730,
-                      pixelSize: 1.35, color: Palette.dimBlue, alignment: .right)
+            font.draw(
+                "BEST \(paddedScore(game.highScore))", x: 746, y: 730,
+                pixelSize: 1.35, color: Palette.dimBlue, alignment: .right)
         }
     }
 
     private func drawReadyOverlay(game: PacManGame) {
         let x = Self.designWidth * 0.5
         let y = Self.mazeOrigin.y + 17.15 * Self.tileSize
-        font.drawGlow("READY!", x: x, y: y, pixelSize: 3.4, color: Palette.ready,
-                      alignment: .center, glowColor: Color(1.0, 0.45, 0.05, 0.30))
+        font.drawGlow(
+            "READY!", x: x, y: y, pixelSize: 3.4, color: Palette.ready,
+            alignment: .center, glowColor: Color(1.0, 0.45, 0.05, 0.30))
     }
 
     private func drawLevelCompleteOverlay(game: PacManGame) {
         let x = Self.designWidth * 0.5
         let y = Self.mazeOrigin.y + 17.0 * Self.tileSize
-        font.drawGlow("LEVEL \(game.level) CLEAR", x: x, y: y, pixelSize: 2.8,
-                      color: Palette.white, alignment: .center,
-                      glowColor: Color(0.35, 0.65, 1.0, 0.35))
+        font.drawGlow(
+            "LEVEL \(game.level) CLEAR", x: x, y: y, pixelSize: 2.8,
+            color: Palette.white, alignment: .center,
+            glowColor: Color(0.35, 0.65, 1.0, 0.35))
     }
 
     private func drawGameOverOverlay(game: PacManGame) {
-        canvas.addRect(x: playfieldRect.minX, y: playfieldRect.minY,
-                       width: playfieldRect.width, height: playfieldRect.height,
-                       color: Color(0, 0, 0, 0.70))
+        canvas.addRect(
+            x: playfieldRect.minX, y: playfieldRect.minY,
+            width: playfieldRect.width, height: playfieldRect.height,
+            color: Color(0, 0, 0, 0.70))
         let panel = CGRect(x: 162, y: 322, width: 572, height: 348)
         drawPanel(panel: panel, fillAlpha: 0.95, borderColor: Color(0.8, 0.18, 0.35, 0.58))
 
-        font.drawGlow("GAME OVER", x: Self.designWidth * 0.5, y: 368, pixelSize: 5.2,
-                      color: Palette.red, alignment: .center,
-                      glowColor: Color(0.75, 0.08, 0.18, 0.35))
+        font.drawGlow(
+            "GAME OVER", x: Self.designWidth * 0.5, y: 368, pixelSize: 5.2,
+            color: Palette.red, alignment: .center,
+            glowColor: Color(0.75, 0.08, 0.18, 0.35))
 
-        font.draw("FINAL SCORE", x: Self.designWidth * 0.5, y: 470,
-                  pixelSize: 1.8, color: Palette.dimBlue, alignment: .center)
-        font.draw(paddedScore(game.score), x: Self.designWidth * 0.5, y: 493,
-                  pixelSize: 3.6, color: Palette.white, alignment: .center)
-        font.draw("HIGH SCORE  \(paddedScore(game.highScore))", x: Self.designWidth * 0.5, y: 546,
-                  pixelSize: 1.55, color: Palette.scoreCyan, alignment: .center)
+        font.draw(
+            "FINAL SCORE", x: Self.designWidth * 0.5, y: 470,
+            pixelSize: 1.8, color: Palette.dimBlue, alignment: .center)
+        font.draw(
+            paddedScore(game.score), x: Self.designWidth * 0.5, y: 493,
+            pixelSize: 3.6, color: Palette.white, alignment: .center)
+        font.draw(
+            "HIGH SCORE  \(paddedScore(game.highScore))", x: Self.designWidth * 0.5, y: 546,
+            pixelSize: 1.55, color: Palette.scoreCyan, alignment: .center)
 
         let promptPulse = 0.68 + 0.32 * abs(sin(game.elapsed * 2.1))
         var promptColor = Palette.white
         promptColor.w = Float(promptPulse)
-        font.draw("PRESS ENTER TO PLAY AGAIN", x: Self.designWidth * 0.5, y: 604,
-                  pixelSize: 2.05, color: promptColor, alignment: .center)
+        font.draw(
+            "PRESS ENTER TO PLAY AGAIN", x: Self.designWidth * 0.5, y: 604,
+            pixelSize: 2.05, color: promptColor, alignment: .center)
     }
 
     private func drawPausedOverlay() {
-        canvas.addRect(x: 0, y: 0, width: Self.designWidth, height: Self.designHeight,
-                       color: Color(0.002, 0.004, 0.014, 0.72))
+        canvas.addRect(
+            x: 0, y: 0, width: Self.designWidth, height: Self.designHeight,
+            color: Color(0.002, 0.004, 0.014, 0.72))
         let panel = CGRect(x: 218, y: 390, width: 460, height: 248)
         drawPanel(panel: panel, fillAlpha: 0.93, borderColor: Color(0.3, 0.6, 1.0, 0.6))
-        font.drawGlow("PAUSED", x: Self.designWidth * 0.5, y: 434, pixelSize: 5.0,
-                      color: Palette.scoreCyan, alignment: .center,
-                      glowColor: Color(0.15, 0.55, 1.0, 0.25))
-        font.draw("PRESS P TO RESUME", x: Self.designWidth * 0.5, y: 550,
-                  pixelSize: 2.0, color: Palette.white, alignment: .center)
-        font.draw("M TOGGLE SOUND", x: Self.designWidth * 0.5, y: 581,
-                  pixelSize: 1.55, color: Palette.dimBlue, alignment: .center)
+        font.drawGlow(
+            "PAUSED", x: Self.designWidth * 0.5, y: 434, pixelSize: 5.0,
+            color: Palette.scoreCyan, alignment: .center,
+            glowColor: Color(0.15, 0.55, 1.0, 0.25))
+        font.draw(
+            "PRESS P TO RESUME", x: Self.designWidth * 0.5, y: 550,
+            pixelSize: 2.0, color: Palette.white, alignment: .center)
+        font.draw(
+            "M TOGGLE SOUND", x: Self.designWidth * 0.5, y: 581,
+            pixelSize: 1.55, color: Palette.dimBlue, alignment: .center)
     }
 
     private func drawLargeTitle(_ text: String, centerX: CGFloat, y: CGFloat) {
-        font.draw(text, x: centerX + 4, y: y + 5, pixelSize: 8.4,
-                  color: Color(0.72, 0.12, 0.52, 0.40), alignment: .center)
+        font.draw(
+            text, x: centerX + 4, y: y + 5, pixelSize: 8.4,
+            color: Color(0.72, 0.12, 0.52, 0.40), alignment: .center)
         font.draw(text, x: centerX, y: y, pixelSize: 8.4, color: Palette.pacman, alignment: .center)
-        font.draw(text, x: centerX - 1.5, y: y - 1.5, pixelSize: 8.4,
-                  color: Color(1.0, 0.96, 0.55, 0.50), alignment: .center)
+        font.draw(
+            text, x: centerX - 1.5, y: y - 1.5, pixelSize: 8.4,
+            color: Color(1.0, 0.96, 0.55, 0.50), alignment: .center)
     }
 
     private func drawPanel(panel: CGRect, fillAlpha: Float, borderColor: Color) {
-        canvas.addRect(x: panel.minX + 3, y: panel.minY + 5,
-                       width: panel.width, height: panel.height,
-                       color: Color(0, 0, 0, 0.55))
-        canvas.addRect(x: panel.minX, y: panel.minY, width: panel.width, height: panel.height,
-                       color: Color(0.010, 0.016, 0.048, fillAlpha))
+        canvas.addRect(
+            x: panel.minX + 3, y: panel.minY + 5,
+            width: panel.width, height: panel.height,
+            color: Color(0, 0, 0, 0.55))
+        canvas.addRect(
+            x: panel.minX, y: panel.minY, width: panel.width, height: panel.height,
+            color: Color(0.010, 0.016, 0.048, fillAlpha))
         strokeRect(panel, color: borderColor, thickness: 1.4)
         strokeRect(panel.insetBy(dx: 5, dy: 5), color: Color(0.16, 0.28, 0.75, 0.30), thickness: 1)
     }
 
     private func strokeRect(_ rect: CGRect, color: Color, thickness: CGFloat) {
-        canvas.addLine(from: CGPoint(x: rect.minX, y: rect.minY), to: CGPoint(x: rect.maxX, y: rect.minY),
-                       thickness: thickness, color: color, rounded: false)
-        canvas.addLine(from: CGPoint(x: rect.maxX, y: rect.minY), to: CGPoint(x: rect.maxX, y: rect.maxY),
-                       thickness: thickness, color: color, rounded: false)
-        canvas.addLine(from: CGPoint(x: rect.maxX, y: rect.maxY), to: CGPoint(x: rect.minX, y: rect.maxY),
-                       thickness: thickness, color: color, rounded: false)
-        canvas.addLine(from: CGPoint(x: rect.minX, y: rect.maxY), to: CGPoint(x: rect.minX, y: rect.minY),
-                       thickness: thickness, color: color, rounded: false)
+        canvas.addLine(
+            from: CGPoint(x: rect.minX, y: rect.minY), to: CGPoint(x: rect.maxX, y: rect.minY),
+            thickness: thickness, color: color, rounded: false)
+        canvas.addLine(
+            from: CGPoint(x: rect.maxX, y: rect.minY), to: CGPoint(x: rect.maxX, y: rect.maxY),
+            thickness: thickness, color: color, rounded: false)
+        canvas.addLine(
+            from: CGPoint(x: rect.maxX, y: rect.maxY), to: CGPoint(x: rect.minX, y: rect.maxY),
+            thickness: thickness, color: color, rounded: false)
+        canvas.addLine(
+            from: CGPoint(x: rect.minX, y: rect.maxY), to: CGPoint(x: rect.minX, y: rect.minY),
+            thickness: thickness, color: color, rounded: false)
     }
 
     private func drawScanlines() {
         var y: CGFloat = 0
         while y < Self.designHeight {
-            canvas.addRect(x: 0, y: y, width: Self.designWidth, height: 1,
-                           color: Color(0, 0, 0, 0.055))
+            canvas.addRect(
+                x: 0, y: y, width: Self.designWidth, height: 1,
+                color: Color(0, 0, 0, 0.055))
             y += 4
         }
     }
