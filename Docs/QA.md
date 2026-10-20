@@ -135,3 +135,48 @@ Each ghost repeatedly asks "which legal turn puts my tile center closest to my
 personal target point?", and the four personalities differ only in how that
 target is computed — a direct chase, a lookahead point, a mirrored vector off
 Blinky, or a distance-triggered corner retreat.
+
+## 2. What is BFS?
+
+**BFS** stands for **breadth-first search**. It is a way of exploring a graph —
+here, the maze's tiles — by expanding outward one "ring" of neighbours at a
+time. A queue holds the tiles still to visit: take the oldest tile off the
+front, look at every tile one step away from it, and add the ones that have not
+been seen yet to the back.
+
+The important property is that, in a graph where every move has the same cost,
+BFS discovers each tile by a **shortest path**. It reaches all tiles one step
+from the start first, then all tiles two steps away, and so on. A tile is never
+given a longer distance after a shorter one, because the shorter route is
+always found first.
+
+### How this game uses it
+
+The arcade uses BFS once, when the maze is created, to build a lookup table of
+every tile's distance to the ghost house:
+
+- [`Maze.swift:153–179`](../Sources/PacManCore/Maze.swift#L153-L179) —
+  `computeHouseDistances` seeds the queue with the return tile `(13, 14)` at
+  distance 0. It then pops a tile, tests its four neighbours, skips walls and
+  out-of-bounds tiles, wraps tunnel columns, and enqueues each unvisited tile
+  with `distance + 1`.
+- [`Maze.swift:69–72`](../Sources/PacManCore/Maze.swift#L69-L72) and
+  [`Maze.swift:147–151`](../Sources/PacManCore/Maze.swift#L147-L151) — the
+  result is stored as the flat `houseDistance` array, indexed by
+  `row * columns + column`.
+- [`Game.swift:598–610`](../Sources/PacManCore/Game.swift#L598-L610) — a ghost
+  in the `eyes` state simply compares the stored distances of its legal
+  neighbours and moves to the smallest one. It is always walking downhill, so
+  no search happens during play.
+
+The BFS treats the ghost door as walkable (it only rejects walls), which is why
+eaten ghosts can pass back into the house. Because the maze is small — 28 × 31
+tiles — the whole table costs O(rows × columns) and is built once at startup.
+
+### Why not use BFS for chasing?
+
+The normal ghosts deliberately do not pathfind. They use the much cheaper
+greedy target rule described in question 1, evaluating only the immediate exits
+at each tile center. That is the authentic arcade behavior: ghosts can be
+baited into taking a locally shorter turn that leads away from Pac-Man. BFS
+would make them perfect pursuers and lose that character.
