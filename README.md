@@ -80,7 +80,7 @@ Sources/PacManArcade/      macOS executable
 Checks/                    Dependency-free simulation checks
 scripts/                   App bundle + icon generation
 Resources/                 Info.plist and generated app icon
-Docs/                      Screenshots and project-origin record
+Docs/                      Screenshots, project-origin record, code Q&A, Metal crash course
 AGENTS.md                  Operating instructions for coding agents
 CONTRIBUTING.md            Contribution workflow and quality bar
 GOVERNANCE.md              Decision-making, release, and IP policy
@@ -96,6 +96,10 @@ make checks
 ```
 
 The checks cover maze dimensions and pellet totals, reachability of every pellet, tunnel wrapping, the eyes' path home, state transitions, dot scoring, wall stops, buffered turns, pause behavior, ghost-house release, a 60-second movement soak test, an autopilot run that reaches a power pellet, ghost collision/death handling, and game over. The current baseline passes **21,646 checks**.
+
+## New to Metal?
+
+If you have never written a GPU API, the [Metal crash course](Docs/METAL_CRASH_COURSE.md) starts from "what is the GPU actually doing?" and walks through this renderer's shaders, vertex buffers, single draw call, blending, and MSAA using the actual source. It assumes no Metal or graphics knowledge and translates the concepts to familiar web ideas along the way.
 
 ## Questions and answers
 

@@ -183,6 +183,10 @@ would make them perfect pursuers and lose that character.
 
 ## 3. Is Metal used for all computations?
 
+> New to Metal? The [Metal crash course](METAL_CRASH_COURSE.md) builds every
+> concept below from first principles, with web-development analogies and a
+> line-by-line walkthrough of this project's renderer.
+
 **No.** Metal is used only to draw the frame. Every gameplay computation —
 movement, ghost decisions, collisions, scoring, timers, mode changes — runs in
 plain Swift on the CPU. Audio is also CPU-generated, and windowing, input, and
@@ -229,7 +233,7 @@ blending, and resolving 4× MSAA — but it never decides what the game does.
 ### Why it is split this way
 
 The separation is an explicit architectural rule:
-[`AGENTS.md:66–70`](AGENTS.md#L66-L70). Keeping `PacManCore` headless is what
+[`AGENTS.md:66–70`](../AGENTS.md#L66-L70). Keeping `PacManCore` headless is what
 lets the checks executable import it with nothing but Foundation
 ([`Checks/main.swift:1–2`](../Checks/main.swift#L1-L2)) and run thousands of
 deterministic assertions on a machine without needing a window or a drawable.
