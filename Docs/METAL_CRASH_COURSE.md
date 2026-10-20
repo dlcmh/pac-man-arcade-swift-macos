@@ -120,17 +120,16 @@ reads the finished state and draws it.** The renderer never writes gameplay stat
 That rule is enforced by the architecture and is why the simulation can be tested
 headlessly.
 
-The entry point is
-[`GameView.swift:90–120`](../Sources/PacManArcade/GameView.swift#L90-L120). The
-renderer's frame is
-[`Renderer.swift:78–152`](../Sources/PacManArcade/Renderer.swift#L78-L152).
+The entry point is [`GameView.swift`](../Sources/PacManArcade/GameView.swift) —
+`draw(in:)`. The renderer's frame is
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift) — `render`.
 
 ---
 
 ## 4. Everything is a triangle
 
-Look at [`Canvas.swift:36–73`](../Sources/PacManArcade/Canvas.swift#L36-L73). A
-vertex is just six `Float` values:
+Look at [`Canvas.swift`](../Sources/PacManArcade/Canvas.swift) — `addVertex`
+writes one. A vertex is just six `Float` values:
 
 ```text
 x, y, red, green, blue, alpha
@@ -142,16 +141,16 @@ triangles; a circle is a fan of triangles; a thick line is a quad plus two round
 caps; text is a collection of small rectangles. The pixel font, the ghost bodies,
 the maze walls, and even the CRT scanlines all become the same six-float format.
 
-The layout is defined on the Swift side by
-[`Canvas.addVertex`](../Sources/PacManArcade/Canvas.swift#L55-L62) and consumed on
-the GPU side by the `VertexIn` struct in
-[`MetalShaders.swift:8–11`](../Sources/PacManArcade/MetalShaders.swift#L8-L11).
+The layout is defined on the Swift side in
+[`Canvas.swift`](../Sources/PacManArcade/Canvas.swift) — `addVertex` — and
+consumed on the GPU side in
+[`MetalShaders.swift`](../Sources/PacManArcade/MetalShaders.swift) — `VertexIn`.
 Those two definitions are a contract: if you change one, you must change the other.
 
 ### A concrete example: one dot
 
 A dot is drawn as two concentric circles — a soft glow and a solid centre — in
-[`Renderer.swift:283–305`](../Sources/PacManArcade/Renderer.swift#L283-L305).
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift): `drawPellets` does it.
 
 `addCircle` uses 10 segments for a dot, so each circle is 10 triangles, and each
 triangle is 3 vertices:
@@ -173,12 +172,13 @@ the GPU and reuse it.
 
 All of those triangles share the same vertex format, the same shaders, and the same
 pipeline state. Nothing switches textures or materials mid-frame. So the renderer
-can put the entire frame in one buffer and issue a single
-[`drawPrimitives`](../Sources/PacManArcade/Renderer.swift#L143-L147) call.
+can put the entire frame in one buffer and, in
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift), issue a single
+`drawPrimitives` call.
 
-Drawing order still matters. The scene is composed back-to-front:
-
-[`Renderer.swift:86–96`](../Sources/PacManArcade/Renderer.swift#L86-L96)
+Drawing order still matters. The scene is composed back-to-front in
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift) — `render` calls the
+`draw…` methods in this order:
 
 1. backdrop and cabinet frame
 2. maze walls
@@ -202,7 +202,8 @@ everything.
 
 At startup, `GameView` asks for the system GPU and configures the `MTKView`:
 
-[`GameView.swift:23–45`](../Sources/PacManArcade/GameView.swift#L23-L45)
+[`GameView.swift`](../Sources/PacManArcade/GameView.swift) — `sampleCount` and
+the other view settings are configured here:
 
 - `MTLCreateSystemDefaultDevice()` gets the GPU.
 - `colorPixelFormat = .bgra8Unorm` chooses the drawable's pixel format.
@@ -214,7 +215,9 @@ At startup, `GameView` asks for the system GPU and configures the `MTKView`:
 
 `Renderer.init` then builds the long-lived objects:
 
-[`Renderer.swift:28–76`](../Sources/PacManArcade/Renderer.swift#L28-L76)
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift) —
+`makeRenderPipelineState` builds the pipeline once the shader library and
+functions exist:
 
 1. Compile the Metal Shading Language source string into an `MTLLibrary`.
 2. Look up the `vertex_main` and `fragment_main` functions.
@@ -224,10 +227,11 @@ At startup, `GameView` asks for the system GPU and configures the `MTKView`:
 5. Allocate three `MTLBuffer`s for vertex data.
 
 **The shader is compiled at runtime.** The MSL lives in a Swift string in
-[`MetalShaders.swift`](../Sources/PacManArcade/MetalShaders.swift), not in a `.metal`
-file compiled by Xcode. That is why a successful `swift build` does not prove the
-renderer will launch: a typo in the shader string is only discovered when
-`Renderer.init` runs and the app tries to create the library.
+[`MetalShaders.swift`](../Sources/PacManArcade/MetalShaders.swift) —
+`MetalShaderSource.source` — not in a `.metal` file compiled by Xcode. That is
+why a successful `swift build` does not prove the renderer will launch: a typo
+in the shader string is only discovered when `Renderer.init` runs and the app
+tries to create the library.
 
 ### 5.2 The drawable and the render pass
 
@@ -236,7 +240,8 @@ presented to the display. It also supplies a **render pass descriptor**, which
 describes the set of textures being rendered into and what to do at the start and
 end of the pass.
 
-[`Renderer.swift:78–84`](../Sources/PacManArcade/Renderer.swift#L78-L84)
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift) — `render` starts by
+asking for the drawable and pass descriptor:
 
 The frame begins by asking for both. If either is unavailable — for example, the
 window is minimised or the layer is not ready — the renderer simply returns and
@@ -245,9 +250,9 @@ letterbox bars are black even before any triangles are drawn.
 
 ### 5.3 Build the scene on the CPU
 
-The renderer resets the canvas and appends every primitive:
-
-[`Renderer.swift:86–96`](../Sources/PacManArcade/Renderer.swift#L86-L96)
+The renderer resets the canvas and appends every primitive in
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift) — `render` calls each
+`draw…` helper:
 
 Each `draw…` method reads the current `PacManGame` and decides what that frame looks
 like. For example, `drawPellets` uses the pellet positions, `drawPacman` uses the
@@ -258,7 +263,8 @@ The GPU will never make those decisions; it only receives the resulting vertices
 
 After the scene is built, the CPU knows exactly how many vertices there are:
 
-[`Renderer.swift:98–119`](../Sources/PacManArcade/Renderer.swift#L98-L119)
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift) — `vertexBuffers` and
+`frameIndex` pick the slot:
 
 The renderer picks one of three pre-allocated buffers, grows it if this frame needs
 more room, and copies the raw bytes from the Swift array into it. The buffers use
@@ -278,7 +284,8 @@ The game is authored at a fixed design resolution of **896 × 1092**. The window
 be any size and can be full screen, so the renderer computes a uniform scale that
 fits the design inside the drawable, plus offsets that centre it:
 
-[`Renderer.swift:121–131`](../Sources/PacManArcade/Renderer.swift#L121-L131)
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift) — the `Uniforms`
+struct is filled from `drawableSize` here:
 
 ```swift
 let scale = min(drawableWidth / 896, drawableHeight / 1092)
@@ -299,7 +306,8 @@ backing scale is handled for free as long as this calculation uses the drawable.
 
 Now the CPU records what the GPU should do:
 
-[`Renderer.swift:133–151`](../Sources/PacManArcade/Renderer.swift#L133-L151)
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift) — `render` records
+the encoder and submits one draw:
 
 1. Create a command buffer from the command queue.
 2. Create a render command encoder from the pass descriptor.
@@ -333,8 +341,9 @@ use, the CPU may already be several frames ahead by then.
 
 ## 6. The shaders, line by line
 
-The complete MSL source is under 40 lines:
-[`MetalShaders.swift:4–41`](../Sources/PacManArcade/MetalShaders.swift#L4-L41).
+The complete MSL source is under 40 lines in
+[`MetalShaders.swift`](../Sources/PacManArcade/MetalShaders.swift) —
+`MetalShaderSource.source`.
 
 ```metal
 struct VertexIn {
@@ -413,7 +422,8 @@ colour through the pipeline.
 
 The pipeline descriptor turns on straight-alpha blending:
 
-[`Renderer.swift:47–60`](../Sources/PacManArcade/Renderer.swift#L47-L60)
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift) — the pipeline
+descriptor sets `sourceRGBBlendFactor` and friends:
 
 ```text
 result = source.rgb * source.a + destination.rgb * (1 - source.a)
@@ -432,8 +442,8 @@ less jagged. If a Mac does not support 4× sample counts, the game falls back to
 rather than failing.
 
 The scanlines are not a post-processing shader. They are simply 273 translucent
-one-pixel rectangles appended after the game world:
-[`Renderer.swift:870–877`](../Sources/PacManArcade/Renderer.swift#L870-L877). That
+one-pixel rectangles appended after the game world by
+[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift) — `drawScanlines`. That
 is a good illustration of the immediate-mode approach: a visual effect that might
 be a full-screen shader elsewhere is just more triangles here.
 
@@ -488,16 +498,20 @@ sufficient for rendering changes.
 
 Read these in order, ideally with the project open in an editor:
 
-1. **[`MetalShaders.swift`](../Sources/PacManArcade/MetalShaders.swift)** — the whole
+1. **[`MetalShaders.swift`](../Sources/PacManArcade/MetalShaders.swift)** —
+   `MetalShaderSource` is the whole
    GPU program. Start here because it is short and self-contained.
-2. **[`Canvas.swift`](../Sources/PacManArcade/Canvas.swift)** — how a circle or a
+2. **[`Canvas.swift`](../Sources/PacManArcade/Canvas.swift)** — `Canvas` shows how
+   a circle or a
    rectangle becomes triangles, and what six floats per vertex mean.
-3. **[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift)** — set-up once, then
+3. **[`Renderer.swift`](../Sources/PacManArcade/Renderer.swift)** — `render` is
+   set-up once, then
    the per-frame sequence: gather drawable, build scene, upload, encode, present.
-4. **[`GameView.swift`](../Sources/PacManArcade/GameView.swift)** — the `MTKView`
+4. **[`GameView.swift`](../Sources/PacManArcade/GameView.swift)** — `draw(in:)` is
+   the `MTKView`
    delegate, fixed-step loop, and input handling.
-5. **[`AppDelegate.swift`](../Sources/PacManArcade/AppDelegate.swift)** — the window
-   and menu around the view.
+5. **[`AppDelegate.swift`](../Sources/PacManArcade/AppDelegate.swift)** —
+   `applicationDidFinishLaunching` builds the window and menu around the view.
 
 ### Three small experiments
 

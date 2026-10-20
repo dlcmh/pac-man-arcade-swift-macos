@@ -1,8 +1,9 @@
 # Code Q&A
 
 A running record of questions about how **PAC-MAN — Metal Arcade** works, with
-answers grounded in the source. Each answer points at the exact files and lines
-that implement the behavior. New entries are appended in the order asked.
+answers grounded in the source. Each answer points at the file and the named
+symbol that implements the behavior, so the reference survives unrelated edits.
+New entries are appended in the order asked.
 
 ## 1. How do the ghosts know how to hunt and move towards Pac-Man?
 
@@ -17,12 +18,13 @@ Different targets for Blinky, Pinky, Inky, and Clyde produce the four distinct
 The simulation runs as a fixed-step update. `updatePlaying` advances Pac-Man
 first, then calls `updateGhosts`:
 
-- [`Game.swift:312–340`](../Sources/PacManCore/Game.swift#L312-L340) — the
-  playing-phase update, including the `updateGhosts(deltaTime)` call at line 333.
+- [`Game.swift`](../Sources/PacManCore/Game.swift) — `updatePlaying` is the
+  playing-phase update; the `updateGhosts(deltaTime)` call comes after Pac-Man
+  has moved.
 
 Each ghost is a small state machine — `house`, `leaving`, `roam`, or `eyes`:
 
-- [`Game.swift:459–490`](../Sources/PacManCore/Game.swift#L459-L490) — the
+- [`Game.swift`](../Sources/PacManCore/Game.swift) — `updateGhost` holds the
   per-ghost switch. Only `roam` (normal hunting) and `eyes` (returning home) use
   the shared movement routine `advanceGhost`; `house` bobs in place and
   `leaving` follows a scripted exit through the door.
@@ -32,8 +34,8 @@ Each ghost is a small state machine — `house`, `leaving`, `roam`, or `eyes`:
 Ghosts move along tile centers, just like Pac-Man. When a ghost reaches a tile
 center, `advanceGhost` decides where it may go next:
 
-- [`Game.swift:515–567`](../Sources/PacManCore/Game.swift#L515-L567) — speed
-  selection, tunnel slowdown, and the decision point at `isAtTileCenter`.
+- [`Game.swift`](../Sources/PacManCore/Game.swift) — `advanceGhost` selects speed
+  (including tunnel slowdown) and takes the decision branch at `isAtTileCenter`.
 
 At that center it:
 
@@ -43,15 +45,14 @@ At that center it:
    is only allowed for `eyes`).
 3. Removes the reverse of the current direction, unless that is the only option
    (a dead end). This is the arcade rule that ghosts cannot turn around in a
-   corridor:
-   [`Game.swift:552–560`](../Sources/PacManCore/Game.swift#L552-L560).
+   corridor: the `available` filter in `advanceGhost` drops
+   `ghost.direction.opposite` when another choice exists.
 4. Asks `chooseGhostDirection` to pick one of the remaining options, then keeps
    travelling in that direction until the next tile center.
 
 ### The greedy choice
 
-- [`Game.swift:593–628`](../Sources/PacManCore/Game.swift#L593-L628) —
-  `chooseGhostDirection`.
+- [`Game.swift`](../Sources/PacManCore/Game.swift) — `chooseGhostDirection`.
 
 For a normal (non-frightened, non-eyes) ghost it calls `ghostTarget(for:)`, then
 scores each available option by the **squared straight-line distance** from the
@@ -69,7 +70,9 @@ for direction in options {
 Because `available` is built from `Direction.decisionOrder` — up, left, down,
 right — equally good choices are resolved in that arcade order (strict `<`
 keeps the first):
-[`Math.swift:118–119`](../Sources/PacManCore/Math.swift#L118-L119).
+
+- [`Math.swift`](../Sources/PacManCore/Math.swift) — `decisionOrder` is the
+  fixed tie-break order.
 
 This is a *local* heuristic, not a shortest-path search. A ghost can be led
 away from Pac-Man by a locally closer turn; the hunting behavior emerges from
@@ -77,8 +80,7 @@ re-evaluating the target at every tile center.
 
 ### The four targets
 
-- [`Game.swift:630–663`](../Sources/PacManCore/Game.swift#L630-L663) —
-  `ghostTarget(for:)`.
+- [`Game.swift`](../Sources/PacManCore/Game.swift) — `ghostTarget(for:)`.
 
 | Ghost | Chase target | Scatter corner |
 | --- | --- | --- |
@@ -92,20 +94,17 @@ are only used for distance comparisons; the ghost still has to obey walls.
 
 ### Scatter, chase, and frightened
 
-- [`Game.swift:165–174`](../Sources/PacManCore/Game.swift#L165-L174) — the
-  scatter/chase schedule (7s scatter, 20s chase, … ending in permanent chase).
-- [`Game.swift:669–682`](../Sources/PacManCore/Game.swift#L669-L682) —
-  `updateGhostMode` advances the schedule and flips `ghostMode`, which is what
-  `ghostTarget` checks first. Every mode change forces roaming ghosts to
-  reverse (`forceReverse`), handled at
-  [`Game.swift:478–483`](../Sources/PacManCore/Game.swift#L478-L483).
+- [`Game.swift`](../Sources/PacManCore/Game.swift) — `modeSchedule` defines the
+  scatter/chase schedule: 7s scatter, 20s chase, … ending in permanent chase.
+- [`Game.swift`](../Sources/PacManCore/Game.swift) — `updateGhostMode` advances
+  the schedule and flips `ghostMode`, which is what `ghostTarget` checks first.
+  Every mode change forces roaming ghosts to reverse: `forceReverse` is the flag
+  that `updateGhost` acts on.
 - While a power pellet is active the mode timer is paused, and the decision
-  code ignores targets entirely: frightened ghosts pick a uniformly random
-  available direction:
-  [`Game.swift:612–614`](../Sources/PacManCore/Game.swift#L612-L614). The random
-  source is the deterministic `SplitMix64` in
-  [`Math.swift:126–150`](../Sources/PacManCore/Math.swift#L126-L150), so runs
-  remain reproducible.
+  code ignores targets entirely: with `frightenedRemaining` above zero,
+  `chooseGhostDirection` picks a uniformly random available direction. The
+  random source is [`Math.swift`](../Sources/PacManCore/Math.swift) —
+  `SplitMix64` — so runs remain reproducible.
 
 ### Eyes use real pathfinding
 
@@ -113,21 +112,27 @@ Eaten ghosts are the exception: they navigate home with a precomputed
 breadth-first distance field rather than the greedy target heuristic. The field
 is built once by `Maze` from the ghost-house return tile `(13, 14)` and wraps
 through both tunnels:
-[`Maze.swift:147–179`](../Sources/PacManCore/Maze.swift#L147-L179). The eyes
-state then picks the neighbor with the smallest house distance
-([`Game.swift:598–610`](../Sources/PacManCore/Game.swift#L598-L610)), and on
-reaching the return tile it re-enters the house
-([`Game.swift:542–550`](../Sources/PacManCore/Game.swift#L542-L550)).
+
+- [`Maze.swift`](../Sources/PacManCore/Maze.swift) — `computeHouseDistances`
+  seeds the BFS and fills the field.
+
+The eyes state then picks the neighbor with the smallest house distance, which
+is the `eyes` branch of `chooseGhostDirection` in
+[`Game.swift`](../Sources/PacManCore/Game.swift) — `houseDistance`. On reaching
+`ghostHouseReturnTile` it re-enters the house; that hand-off lives in
+[`Game.swift`](../Sources/PacManCore/Game.swift) — `advanceGhost`.
 
 ### Exit and speed
 
 - Ghosts start in the house with staggered release delays and leave through a
   scripted path to the door and up to row 11.5:
-  [`Game.swift:492–513`](../Sources/PacManCore/Game.swift#L492-L513) and
-  [`Game.swift:825–864`](../Sources/PacManCore/Game.swift#L825-L864).
+  [`Game.swift`](../Sources/PacManCore/Game.swift) — `releaseDelay` counts down
+  in `updateGhost`, and the per-level `releaseScale` multiplier spaces the
+  ghosts out.
 - Base ghost speed scales with level; frightened ghosts move at 61% speed, eyes
-  at 13 tiles/second, and all of them slow to 55% in the tunnels:
-  [`Game.swift:515–529`](../Sources/PacManCore/Game.swift#L515-L529).
+  at 13 tiles/second, and all of them slow to 55% in the tunnels.
+  [`Game.swift`](../Sources/PacManCore/Game.swift) — `ghostSpeed` sets the base
+  speed and `advanceGhost` applies the frightened and tunnel multipliers.
 
 ### In one sentence
 
@@ -155,19 +160,16 @@ always found first.
 The arcade uses BFS once, when the maze is created, to build a lookup table of
 every tile's distance to the ghost house:
 
-- [`Maze.swift:153–179`](../Sources/PacManCore/Maze.swift#L153-L179) —
-  `computeHouseDistances` seeds the queue with the return tile `(13, 14)` at
-  distance 0. It then pops a tile, tests its four neighbours, skips walls and
-  out-of-bounds tiles, wraps tunnel columns, and enqueues each unvisited tile
-  with `distance + 1`.
-- [`Maze.swift:69–72`](../Sources/PacManCore/Maze.swift#L69-L72) and
-  [`Maze.swift:147–151`](../Sources/PacManCore/Maze.swift#L147-L151) — the
-  result is stored as the flat `houseDistance` array, indexed by
-  `row * columns + column`.
-- [`Game.swift:598–610`](../Sources/PacManCore/Game.swift#L598-L610) — a ghost
-  in the `eyes` state simply compares the stored distances of its legal
-  neighbours and moves to the smallest one. It is always walking downhill, so
-  no search happens during play.
+- [`Maze.swift`](../Sources/PacManCore/Maze.swift) — `computeHouseDistances`
+  seeds the queue with the return tile `(13, 14)` at distance 0. It then pops a
+  tile, tests its four neighbours, skips walls and out-of-bounds tiles, wraps
+  tunnel columns, and enqueues each unvisited tile with `distance + 1`.
+- [`Maze.swift`](../Sources/PacManCore/Maze.swift) — the result is stored as the
+  flat `houseDistance` array, indexed by `row * columns + column`.
+- [`Game.swift`](../Sources/PacManCore/Game.swift) — a ghost in the `eyes` state
+  simply compares the stored distances of its legal neighbours
+  (`maze.houseDistance`) and moves to the smallest one. It is always walking
+  downhill, so no search happens during play.
 
 The BFS treats the ghost door as walkable (it only rejects walls), which is why
 eaten ghosts can pass back into the house. Because the maze is small — 28 × 31
@@ -203,27 +205,27 @@ persistence use AppKit and `UserDefaults` rather than Metal.
 
 ### Where the split happens
 
-- [`Game.swift:280–310`](../Sources/PacManCore/Game.swift#L280-L310) — the whole
+- [`Game.swift`](../Sources/PacManCore/Game.swift) — `update` is the whole
   simulation update. `PacManCore` imports only `Foundation`; it has no Metal,
   AppKit, or audio imports.
-- [`GameView.swift:90–111`](../Sources/PacManArcade/GameView.swift#L90-L111) —
-  the `MTKView` draw callback runs a 60 Hz fixed-step loop on the CPU. Each step
-  calls `game.update(dt:)` and processes events **before** asking the renderer
-  to draw. The renderer receives an already-decided `PacManGame` and only reads
-  it.
-- [`Canvas.swift:36–73`](../Sources/PacManArcade/Canvas.swift#L36-L73) — the
-  immediate-mode canvas expands every wall, pellet, character, glyph, and
+- [`GameView.swift`](../Sources/PacManArcade/GameView.swift) — `draw(in:)` runs
+  a 60 Hz fixed-step loop on the CPU. Each step calls `game.update(dt:)` and
+  processes events **before** asking the renderer to draw. The renderer receives
+  an already-decided `PacManGame` and only reads it.
+- [`Canvas.swift`](../Sources/PacManArcade/Canvas.swift) — `Canvas` is the
+  immediate-mode canvas that expands every wall, pellet, character, glyph, and
   scanline into triangles. This work is entirely on the CPU.
-- [`Renderer.swift:78–148`](../Sources/PacManArcade/Renderer.swift#L78-L148) —
-  the CPU-side scene composition, buffer copy, and a single
-  `drawPrimitives(type: .triangle, ...)` submission.
-- [`MetalShaders.swift:24–40`](../Sources/PacManArcade/MetalShaders.swift#L24-L40)
-  — the entire GPU program: a vertex shader that scales the 2D position and
-  converts it to clip space, and a fragment shader that returns the vertex
-  colour. There is no lighting, simulation, or compute kernel here.
-- [`SoundEngine.swift:190–207`](../Sources/PacManArcade/SoundEngine.swift#L190-L207)
-  — sound effects are generated sample-by-sample into `AVAudioPCMBuffer`s by
-  ordinary CPU code, then played through `AVAudioEngine`.
+- [`Renderer.swift`](../Sources/PacManArcade/Renderer.swift) — `render` does the
+  CPU-side scene composition, buffer copy, and a single `drawPrimitives` type
+  submission.
+- [`MetalShaders.swift`](../Sources/PacManArcade/MetalShaders.swift) —
+  `MetalShaderSource` holds the entire GPU program: a vertex shader that scales
+  the 2D position and converts it to clip space, and a fragment shader that
+  returns the vertex colour. There is no lighting, simulation, or compute
+  kernel here.
+- [`SoundEngine.swift`](../Sources/PacManArcade/SoundEngine.swift) — `makeBuffer`
+  generates sound effects sample-by-sample into `AVAudioPCMBuffer`s with
+  ordinary CPU code, then plays them through `AVAudioEngine`.
 
 There are no Metal compute pipelines or compute command encoders in the
 project; the only pipeline created is the render pipeline. The GPU does do
@@ -233,9 +235,11 @@ blending, and resolving 4× MSAA — but it never decides what the game does.
 ### Why it is split this way
 
 The separation is an explicit architectural rule:
-[`AGENTS.md:66–70`](../AGENTS.md#L66-L70). Keeping `PacManCore` headless is what
-lets the checks executable import it with nothing but Foundation
-([`Checks/main.swift:1–2`](../Checks/main.swift#L1-L2)) and run thousands of
-deterministic assertions on a machine without needing a window or a drawable.
-It also keeps the simulation reproducible: no frame timing, GPU scheduling, or
-rendering state can change a ghost's decision.
+[`AGENTS.md`](../AGENTS.md#non-negotiable-architecture). Keeping `PacManCore`
+headless is what lets the checks executable import it with nothing but
+Foundation — the imports at the top of
+[`Checks/main.swift`](../Checks/main.swift) are `PacManCore` plus `Foundation`
+and nothing else — and run thousands of deterministic assertions on a machine
+without needing a window or a drawable. It also keeps the simulation
+reproducible: no frame timing, GPU scheduling, or rendering state can change a
+ghost's decision.

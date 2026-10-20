@@ -83,8 +83,9 @@ Changes to `main` are expected to pass:
 
 1. `swift build`
 2. `swift run PacManChecks`
-3. A manual launch for any rendering, input, audio, shader, or windowing change
-4. Review of user-facing documentation and governance accuracy
+3. `make docs-check`
+4. A manual launch for any rendering, input, audio, shader, or windowing change
+5. Review of user-facing documentation and governance accuracy
 
 Generated binaries are not committed to source control. Distribution artifacts
 are produced through `make app` and `make dmg` and published only when the

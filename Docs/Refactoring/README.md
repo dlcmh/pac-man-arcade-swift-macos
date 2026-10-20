@@ -19,6 +19,9 @@ file.
 2. Record both a `Recorded` and a `Last updated` date in the document's metadata
    block, and keep them current.
 3. Insert the document into the table above in descending date order.
+4. Cite code by file and symbol, never by line number, and run `make docs-check`
+   before committing. The convention is defined in
+   [`AGENTS.md`](../../AGENTS.md#documentation-and-code-references).
 
 To confirm the date to record, use the commit that last touched the file:
 

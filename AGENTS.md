@@ -29,7 +29,7 @@ supersedes them. Update this file when project policy changes.
 | `Checks/` | Dependency-free simulation checks executable. |
 | `Resources/` | App metadata and generated icon files. |
 | `Docs/` | Screenshots, project origin, code Q&A, Metal crash course, and Refactoring decision records under `Docs/Refactoring/`. |
-| `scripts/` | Deterministic app-bundle packaging and icon generation. |
+| `scripts/` | Deterministic app-bundle packaging, icon generation, and documentation link checking. |
 | `dist/` | Generated, git-ignored app and DMG artifacts. Never commit it. |
 
 ## Prerequisites
@@ -54,6 +54,7 @@ swift run PacManChecks              # run the simulation checks
 make app                            # build the release app bundle
 make dmg                            # build dist/PAC-MAN-1.0.dmg
 make checks                         # alias for the checks executable
+make docs-check                     # validate doc links and code references
 ```
 
 `swift build` is necessary but not sufficient for rendering changes. The Metal
@@ -120,6 +121,39 @@ PASS: 21646 checks (including power-pellet autopilot, ghost collision, and game 
 Counts may grow. The important requirement is that all checks pass. For pure
 visual or packaging changes, also rebuild and open the resulting `.app`.
 
+## Documentation and code references
+
+A line number in prose is wrong the moment ten lines are inserted above it, and
+nothing fails. Documentation therefore cites a **file and a symbol**, never a
+line range:
+
+```markdown
+[`Game.swift`](Sources/PacManCore/Game.swift) — `updatePlaying`
+```
+
+- Link the file, then name the symbol in backticks on the same line or in the
+  same sentence.
+- Prefer the most specific symbol — a function, property, or type — over a
+  general word such as a state name.
+- Link Markdown by heading anchor
+  (`../AGENTS.md#non-negotiable-architecture`), never by line.
+- When a symbol is renamed or removed, update every document that cites it.
+
+`make docs-check` enforces this: every relative link must resolve, every heading
+anchor must exist, every cited symbol must still occur in the linked file, and
+`#L` line anchors are rejected.
+
+`make docs-impact` is the answer to "which docs does this code change touch?".
+It lists the documents that reference files changed against `HEAD` (or
+`--base <rev>`) and warns when the diff removes a symbol one of them cites.
+Treat that list as the re-read queue after changing code, and fix any reference
+the change invalidated.
+
+`Docs/PROJECT_ORIGIN.md` is a historical record: its quotation is immutable, so
+correct a stale reference there by annotating outside the quote rather than
+rewriting it. A single line can opt out of the symbol rule with
+`<!-- docs-check: ignore -->`.
+
 ## Git and release workflow
 
 - `main` is the canonical trunk.
@@ -181,7 +215,8 @@ new stored preference is unavoidable, document it here and in `SECURITY.md`.
 4. Add or update checks for behavioral changes.
 5. Build, run checks, and launch the app for presentation changes.
 6. Update README/governance docs when behavior, controls, build steps, or
-   policy changes.
+   policy changes, then run `make docs-check` and resolve the docs listed by
+   `make docs-impact`.
 7. Commit with a Conventional Commit message and push to `origin/main` when
    authorized.
 8. Report what changed, what was verified, and any remaining risks or follow-up
@@ -194,6 +229,8 @@ a verification step, say exactly what was blocked.
 
 - [ ] Build succeeds without new warnings.
 - [ ] `swift run PacManChecks` passes.
+- [ ] `make docs-check` passes, and docs listed by `make docs-impact` were
+      re-read after code changes.
 - [ ] The app launches and renders correctly when presentation changed.
 - [ ] Gameplay/controls documentation is current.
 - [ ] Governance and origin records remain accurate.

@@ -47,6 +47,17 @@ For rendering, input, shader, or windowing changes, launching the app is
 mandatory: Metal shaders compile at runtime, so a build alone cannot validate
 them.
 
+Documentation links are checked too:
+
+```bash
+make docs-check
+```
+
+Prose cites a file and a symbol — never a line number — and the checker verifies
+that every cited symbol still exists in the linked file. See
+[AGENTS.md](AGENTS.md#documentation-and-code-references). After changing code,
+`make docs-impact` lists the documents that reference the files you touched.
+
 ## Where to make changes
 
 - **Simulation:** `Sources/PacManCore/` — Foundation only. Keep it independent
@@ -64,6 +75,7 @@ A contribution is ready when:
 
 - `swift build` succeeds without new warnings;
 - `swift run PacManChecks` passes;
+- `make docs-check` passes, and docs affected by the change were re-read;
 - rendering changes were visually checked by running the app;
 - gameplay invariants documented in `AGENTS.md` still hold, or the change
   explicitly updates them along with the checks and docs;
