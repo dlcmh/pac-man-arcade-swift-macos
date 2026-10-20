@@ -48,7 +48,7 @@ triangles**.
 - It does not own the game loop. `MTKView` schedules frames; `PacManCore` decides
   what happens inside them.
 
-If you have read [Code Q&A question 3](QA.md#3-is-metal-used-for-all-computations),
+If you have read [Code Q&A question 3](QnA/metal-computations.md#is-metal-used-for-all-computations),
 this is the long version of that answer.
 
 ---
@@ -562,9 +562,9 @@ Do these on a scratch branch; they are for learning, not for committing.
 ## 12. Where to go next
 
 - For why the game is split between CPU simulation and GPU rendering, see
-  [Code Q&A question 3](QA.md#3-is-metal-used-for-all-computations).
+  [Code Q&A question 3](QnA/metal-computations.md#is-metal-used-for-all-computations).
 - For the ghost AI that runs entirely on the CPU before any of this drawing happens,
-  see [Code Q&A question 1](QA.md#1-how-do-the-ghosts-know-how-to-hunt-and-move-towards-pac-man).
+  see [Code Q&A question 1](QnA/ghost-hunting-and-movement.md#how-do-the-ghosts-know-how-to-hunt-and-move-towards-pac-man).
 - For the build, run, and verification workflow, see
   [CONTRIBUTING.md](../CONTRIBUTING.md).
 - If you want a general Metal textbook after this, the concepts to search for next

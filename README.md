@@ -80,7 +80,8 @@ Sources/PacManArcade/      macOS executable
 Checks/                    Dependency-free simulation checks
 scripts/                   App bundle + icon generation
 Resources/                 Info.plist and generated app icon
-Docs/                      Screenshots, project-origin record, code Q&A, Metal crash course
+Docs/                      Screenshots, project-origin record, Q&A, Metal crash course
+  QnA/                     Source-grounded answers to individual questions
   Refactoring/             Dated records of evaluated refactor proposals
 AGENTS.md                  Operating instructions for coding agents
 CONTRIBUTING.md            Contribution workflow and quality bar
@@ -104,7 +105,7 @@ If you have never written a GPU API, the [Metal crash course](Docs/METAL_CRASH_C
 
 ## Questions and answers
 
-[Code Q&A](Docs/QA.md) collects source-grounded answers to questions about how the game works, starting with how the ghosts decide where to move.
+[`Docs/QnA/`](Docs/QnA/README.md) collects source-grounded answers to individual questions about how the game works. The entries cover ghost targeting, BFS, the CPU/Metal split, and attract mode, and each one links to the files and symbols it describes.
 
 ## Refactoring
 
