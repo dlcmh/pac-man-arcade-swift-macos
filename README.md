@@ -97,6 +97,10 @@ make checks
 
 The checks cover maze dimensions and pellet totals, reachability of every pellet, tunnel wrapping, the eyes' path home, state transitions, dot scoring, wall stops, buffered turns, pause behavior, ghost-house release, a 60-second movement soak test, an autopilot run that reaches a power pellet, ghost collision/death handling, and game over. The current baseline passes **21,646 checks**.
 
+## Questions and answers
+
+[Code Q&A](Docs/QA.md) collects source-grounded answers to questions about how the game works, starting with how the ghosts decide where to move.
+
 ## Project and governance
 
 - [Project origin](Docs/PROJECT_ORIGIN.md) — the original commission, scope decisions, and delivery record
