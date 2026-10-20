@@ -78,7 +78,7 @@ Sources/PacManArcade/      macOS executable
   MetalShaders.swift       Inline Metal shaders
   SoundEngine.swift        Procedurally synthesized sound effects
 Checks/                    Dependency-free simulation checks
-scripts/                   App bundle + icon generation
+scripts/                   App bundle, icon generation, and the make check gate
 Resources/                 Info.plist and generated app icon
 Docs/                      Screenshots, project-origin record, Q&A, Metal crash course
   QnA/                     Source-grounded answers to individual questions
@@ -94,8 +94,16 @@ The simulation is deliberately independent of AppKit and Metal so it can be test
 ## Verification
 
 ```bash
-make checks
+make check
 ```
+
+`make check` is the gate every change must pass: `swift-format lint`, a release
+build with `-warnings-as-errors`, the simulation checks, and `make docs-check`.
+Formatting follows [`.swift-format`](.swift-format) (4-space indent, 100
+columns); apply it with `xcrun swift-format format --in-place --recursive
+Sources Checks`.
+
+The checks alone are available as `make checks`.
 
 The checks cover maze dimensions and pellet totals, reachability of every pellet, tunnel wrapping, the eyes' path home, state transitions, dot scoring, wall stops, buffered turns, pause behavior, ghost-house release, a 60-second movement soak test, an autopilot run that reaches a power pellet, ghost collision/death handling, and game over. The current baseline passes **21,646 checks**.
 

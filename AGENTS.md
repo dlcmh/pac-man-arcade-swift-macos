@@ -29,7 +29,7 @@ supersedes them. Update this file when project policy changes.
 | `Checks/` | Dependency-free simulation checks executable. |
 | `Resources/` | App metadata and generated icon files. |
 | `Docs/` | Screenshots, project origin, Metal crash course, code Q&A under `Docs/QnA/`, and Refactoring decision records under `Docs/Refactoring/`. |
-| `scripts/` | Deterministic app-bundle packaging, icon generation, and documentation link checking. |
+| `scripts/` | Deterministic app-bundle packaging, icon generation, documentation link checking, and the `make check` gate. |
 | `dist/` | Generated, git-ignored app and DMG artifacts. Never commit it. |
 
 ## Prerequisites
@@ -53,6 +53,7 @@ swift run PacManArcade              # launch the game
 swift run PacManChecks              # run the simulation checks
 make app                            # build the release app bundle
 make dmg                            # build dist/PAC-MAN-1.0.dmg
+make check                          # the full gate: lint, warnings-as-errors, checks, docs
 make checks                         # alias for the checks executable
 make docs-check                     # validate doc links and code references
 ```
@@ -104,6 +105,26 @@ deliberately update these known invariants and their checks:
 The level-256 kill screen from the historical arcade machine is acknowledged in
 the origin record but is not emulated in v1.0. Do not add it as a drive-by
 change; scope it with the maintainer first.
+
+## Static checks
+
+`make check` runs [`scripts/check.sh`](scripts/check.sh), the gate every change
+must pass:
+
+1. `xcrun swift-format lint --recursive Sources Checks` — style from
+   [`.swift-format`](.swift-format) (4-space indent, 100 columns).
+2. `swift build -c release -Xswiftc -warnings-as-errors` — unused variables,
+   dead stores, unreachable code, and actor-isolation warnings.
+3. `swift run PacManChecks` — behavior.
+4. `python3 scripts/check_docs.py` — documentation links and cited symbols.
+
+Swift ships no Clippy equivalent, and this repository takes no third-party
+dependencies, so the gate uses only `swift-format` and the compiler. Apply the
+house style with `xcrun swift-format format --in-place --recursive Sources
+Checks`. `Sources/PacManArcade/MetalShaders.swift` opts out with
+`// swift-format-ignore-file` because its payload is an MSL string literal that
+the formatter would re-indent. Do not add SwiftLint, Periphery, or other
+packages to get stronger analysis.
 
 ## Testing standard
 
@@ -164,7 +185,8 @@ rewriting it. A single line can opt out of the symbol rule with
   - `chore: refresh application icon`
 - Keep commits coherent and reviewable. Do not mix unrelated refactors with
   gameplay changes.
-- Run `swift build` and `swift run PacManChecks` before committing.
+- Run `make check` before committing; it covers `swift build` and
+  `swift run PacManChecks`.
 - Push to `origin/main`. The maintainer has authorized normal agent commits and
   pushes in this repository.
 - Never force-push `main`, rewrite published history, or change remotes without
@@ -213,7 +235,7 @@ new stored preference is unavoidable, document it here and in `SECURITY.md`.
 2. Inspect `git status` and preserve unrelated local work.
 3. Make the smallest coherent change that satisfies the request.
 4. Add or update checks for behavioral changes.
-5. Build, run checks, and launch the app for presentation changes.
+5. Build, run `make check`, and launch the app for presentation changes.
 6. Update README/governance docs when behavior, controls, build steps, or
    policy changes, then run `make docs-check` and resolve the docs listed by
    `make docs-impact`.
@@ -227,7 +249,7 @@ a verification step, say exactly what was blocked.
 
 ## Definition of done
 
-- [ ] Build succeeds without new warnings.
+- [ ] `make check` passes: lint, warnings-as-errors build, checks, and docs.
 - [ ] `swift run PacManChecks` passes.
 - [ ] `make docs-check` passes, and docs listed by `make docs-impact` were
       re-read after code changes.

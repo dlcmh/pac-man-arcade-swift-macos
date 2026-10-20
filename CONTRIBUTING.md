@@ -35,8 +35,28 @@ Generated artifacts in `.build/` and `dist/` are deliberately not versioned.
 ## Verify changes
 
 ```bash
-swift run PacManChecks
+make check
 ```
+
+That runs the full gate: `swift-format lint`, a release build with
+`-warnings-as-errors`, the simulation checks, and the documentation checks.
+Run it before every commit; the individual stages are also available
+(`make checks`, `make docs-check`).
+
+Swift has no Clippy, and this repository stays dependency-free, so the gate uses
+only what the Apple Command Line Tools ship: `swift-format` for style and the
+compiler's own diagnostics for correctness. Style is defined by
+[`.swift-format`](.swift-format) — 4-space indent, 100 columns — and applied
+with:
+
+```bash
+xcrun swift-format format --in-place --recursive Sources Checks
+```
+
+`Sources/PacManArcade/MetalShaders.swift` opts out of formatting with
+`// swift-format-ignore-file` because its payload is an MSL string literal.
+
+The checks executable is the regression suite.
 
 The checks executable is the regression suite. It covers the maze, movement,
 ghost behavior, scoring, collisions, and state transitions. Add checks whenever

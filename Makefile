@@ -1,4 +1,4 @@
-.PHONY: app build checks clean dmg docs-check docs-impact icon open release run
+.PHONY: app build check checks clean dmg docs-check docs-impact icon open release run
 
 build:
 	swift build
@@ -11,6 +11,9 @@ run:
 
 checks:
 	swift run PacManChecks
+
+check:
+	./scripts/check.sh
 
 docs-check:
 	python3 scripts/check_docs.py
